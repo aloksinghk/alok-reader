@@ -3,74 +3,99 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f7f3eb">
-  <meta name="description" content="Alok Reader — personal Kindle-style PDF to reflowable reader">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="Alok Reader — personal Kindle-style PDF reader">
   <link rel="manifest" href="manifest.webmanifest">
-  <title>Alok Reader v2</title>
+  <title>Alok Reader</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <div id="app">
-  <!-- Sidebar -->
+  <!-- ── Sidebar ── -->
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="brand-mark">A</div>
-      <div><strong>Alok Reader</strong><span>Your private library</span></div>
+      <div class="brand-text">
+        <strong>Alok Reader</strong>
+        <span>Your private library</span>
+      </div>
     </div>
-    <nav>
-      <button class="nav-item active" data-screen="library">⌂ <span>Home</span></button>
-      <button class="nav-item" data-screen="library">📚 <span>Library</span></button>
-      <button class="nav-item" data-screen="collections">▦ <span>Collections</span></button>
-      <button class="nav-item" data-screen="bookmarks">🔖 <span>Bookmarks</span></button>
-      <button class="nav-item" data-screen="highlights">🟨 <span>Highlights</span></button>
-      <label class="nav-item upload-nav" for="fileInput">＋ <span>Add Books</span></label>
-    </nav>
+
+    <div class="nav-section">
+      <div class="nav-label">Library</div>
+      <button class="nav-item active" data-screen="library">
+        <span class="nav-icon">⌂</span> Home
+      </button>
+      <button class="nav-item" data-screen="collections">
+        <span class="nav-icon">▦</span> Collections
+      </button>
+
+      <div class="nav-label" style="margin-top:16px">Reading</div>
+      <button class="nav-item" data-screen="bookmarks">
+        <span class="nav-icon">🔖</span> Bookmarks
+      </button>
+      <button class="nav-item" data-screen="highlights">
+        <span class="nav-icon">🖊</span> Highlights
+      </button>
+
+      <div class="nav-label" style="margin-top:16px">Manage</div>
+      <label class="nav-item upload-nav" for="fileInput">
+        <span class="nav-icon">＋</span> Add Books
+      </label>
+      <button class="nav-item" data-screen="upload">
+        <span class="nav-icon">⚙</span> Settings &amp; Backup
+      </button>
+    </div>
+
     <div class="sidebar-footer">
-      <small>Alok Reader v2</small>
-      <small>Reflowable reading · Local-first</small>
+      <small>Alok Reader v3.1</small>
+      <small>Local-first · No accounts needed</small>
     </div>
   </aside>
 
-  <!-- Main content -->
+  <!-- ── Main ── -->
   <main class="main">
     <header class="topbar">
-      <button id="menuBtn" class="icon-btn mobile-only">☰</button>
+      <button id="menuBtn" class="topbar-btn mobile-only" aria-label="Open menu">☰</button>
       <div class="top-title" id="topTitle">Home</div>
       <div class="top-actions">
-        <input id="globalSearch" class="search" placeholder="Search library…" aria-label="Search library">
-        <button class="avatar" aria-label="User menu">A</button>
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input id="globalSearch" class="search" placeholder="Search your library…" aria-label="Search library">
+        </div>
+        <div class="avatar" aria-label="User">A</div>
       </div>
     </header>
     <section id="content" class="content" aria-live="polite"></section>
   </main>
 </div>
 
-<!-- Reader overlay -->
+<!-- ══════════════════════════════════════════════
+     READER OVERLAY
+══════════════════════════════════════════════ -->
 <div id="reader" class="reader hidden" role="main" aria-label="Book reader">
+
+  <!-- Top bar -->
   <header class="reader-top">
-    <button id="readerClose" class="reader-icon" title="Back to library" aria-label="Close reader">←</button>
+    <button id="readerClose"   class="reader-icon" title="Back (Esc)" aria-label="Close reader">←</button>
     <div class="reader-book-title" id="readerBookTitle"></div>
     <div class="reader-top-right">
-      <button id="readerContentsBtn" class="reader-icon" title="Table of contents (t)" aria-label="Table of contents">☰</button>
-      <button id="readerBookmarksBtn" class="reader-icon" title="Bookmarks" aria-label="Bookmarks">🔖</button>
-      <button id="readerBookmarkBtn" class="reader-icon reader-bookmark" title="Bookmark this page (b)" aria-label="Bookmark this page">☆</button>
-      <button id="readerSearchBtn" class="reader-icon" title="Search in book (f)" aria-label="Search">⌕</button>
-      <button id="readerAa" class="reader-icon" title="Reading settings" aria-label="Reading settings">Aa</button>
-      <button id="readerOriginal" class="reader-icon" title="View original PDF" aria-label="View original PDF">PDF</button>
+      <button id="readerContentsBtn"  class="reader-icon" title="Contents (t)"  aria-label="Table of contents">☰</button>
+      <button id="readerBookmarksBtn" class="reader-icon" title="Bookmarks"     aria-label="Bookmarks">🔖</button>
+      <button id="readerBookmarkBtn"  class="reader-icon reader-bookmark" title="Bookmark (b)" aria-label="Bookmark page">☆</button>
+      <button id="readerSearchBtn"    class="reader-icon" title="Search (f)"    aria-label="Search">⌕</button>
+      <button id="readerAa"           class="reader-icon" title="Settings"      aria-label="Reading settings">Aa</button>
+      <button id="readerOriginal"     class="reader-icon" title="Original PDF"  aria-label="View original PDF">PDF</button>
     </div>
   </header>
 
-  <!-- TOC panel -->
-  <aside id="readerContents" class="reader-contents hidden" aria-label="Table of contents"></aside>
-  <!-- Bookmarks panel -->
+  <!-- Slide-in panels -->
+  <aside id="readerContents"  class="reader-contents hidden" aria-label="Table of contents"></aside>
   <aside id="readerBookmarks" class="reader-contents hidden" aria-label="Bookmarks"></aside>
 
-  <!-- Text selection menu -->
-  <div id="selectionMenu" class="selection-menu hidden" role="menu" aria-label="Text actions">
-    <button id="selectionHighlight" class="selection-action" role="menuitem">🟨 Highlight</button>
-    <button id="selectionNote"      class="selection-action" role="menuitem">📝 Note</button>
-  </div>
+  <!-- Dynamic selection / highlight / dictionary menu -->
+  <div id="selectionMenu" class="selection-menu hidden" role="menu" aria-label="Text actions"></div>
 
   <!-- Search bar -->
   <div id="readerSearch" class="reader-search hidden">
@@ -83,25 +108,25 @@
     <article id="readingText" class="reading-text serif" aria-live="polite"></article>
   </main>
 
-  <!-- Bottom nav bar -->
+  <!-- Bottom bar -->
   <footer class="reader-bottom">
-    <button id="prevReaderPage" class="reader-bottom-btn" title="Previous page" aria-label="Previous page">‹</button>
+    <button id="prevReaderPage" class="reader-bottom-btn" title="Previous page (←)" aria-label="Previous page">‹</button>
     <div class="progress-label" id="readerProgressLabel" aria-live="polite">Page 1 / 1</div>
     <input id="readerProgress" type="range" min="0" max="100" value="0" aria-label="Reading progress">
-    <button id="nextReaderPage" class="reader-bottom-btn" title="Next page" aria-label="Next page">›</button>
+    <button id="nextReaderPage" class="reader-bottom-btn" title="Next page (→)" aria-label="Next page">›</button>
     <button id="bookmarkBtn"  class="reader-bottom-btn" aria-label="Bookmark">🔖</button>
-    <button id="settingsBtn"  class="reader-bottom-btn" aria-label="Reading settings">Aa</button>
+    <button id="settingsBtn"  class="reader-bottom-btn" aria-label="Settings">Aa</button>
   </footer>
 
   <!-- Settings popover -->
   <div id="readingSettings" class="settings-popover hidden" role="dialog" aria-label="Reading settings">
     <div class="settings-header">
       <strong class="reading-settings-title">Reading settings</strong>
-      <button id="closeSettings" aria-label="Close settings">×</button>
+      <button id="closeSettings" aria-label="Close">×</button>
     </div>
 
     <div class="setting-group">
-      <label>Font</label>
+      <label>Font family</label>
       <div class="choice-row" id="fontChoices">
         <button data-font="serif">Serif</button>
         <button data-font="sans">Sans</button>
@@ -113,7 +138,7 @@
       <label>Text size</label>
       <div class="choice-row">
         <button id="fontDown" aria-label="Decrease font size">A−</button>
-        <span id="fontSizeValue">19px</span>
+        <span id="fontSizeValue" style="color:#94a3b8;font-size:13px;padding:0 4px">19px</span>
         <button id="fontUp" aria-label="Increase font size">A+</button>
       </div>
     </div>
@@ -125,6 +150,7 @@
         <button data-theme="sepia">Sepia</button>
         <button data-theme="dark">Dark</button>
         <button data-theme="black">Black</button>
+        <button data-theme="forest">Forest</button>
       </div>
     </div>
 
@@ -138,29 +164,31 @@
     </div>
 
     <div class="setting-group">
-      <label>Page layout</label>
+      <label>Layout</label>
       <div class="choice-row" id="layoutChoices">
-        <button data-layout="single">Single page</button>
-        <button data-layout="spread">Two-page spread</button>
+        <button data-layout="single">Single</button>
+        <button data-layout="spread">Two-page</button>
       </div>
     </div>
 
     <div class="setting-group">
       <label>Text width</label>
       <div class="choice-row" id="widthChoices">
-        <button data-width="680">Narrow</button>
+        <button data-width="660">Narrow</button>
         <button data-width="820">Normal</button>
-        <button data-width="1000">Wide</button>
+        <button data-width="1020">Wide</button>
       </div>
     </div>
 
     <div class="setting-group">
-      <label style="color:#999">Press <kbd>?</kbd> for keyboard shortcuts</label>
+      <label style="text-transform:none;letter-spacing:0;color:#334155">
+        Press <kbd>?</kbd> for all keyboard shortcuts
+      </label>
     </div>
   </div>
 </div>
 
-<!-- PDF viewer overlay -->
+<!-- PDF viewer -->
 <div id="pdfViewer" class="reader hidden" aria-label="Original PDF viewer">
   <header class="reader-top">
     <button id="pdfClose" class="reader-icon" aria-label="Close PDF viewer">←</button>
@@ -171,11 +199,9 @@
   </div>
 </div>
 
-<!-- Hidden file input -->
+<!-- File inputs -->
 <input id="fileInput" type="file" accept=".pdf,application/pdf" multiple hidden aria-hidden="true">
 
-<!-- Toast and loading containers injected by utils.js -->
-
-<script type="module" src="app.js?v=3.0.0"></script>
+<script type="module" src="app.js?v=3.1.0"></script>
 </body>
 </html>

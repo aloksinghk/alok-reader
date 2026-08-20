@@ -147,24 +147,30 @@ export function renderBookmarks({ books, onOpen }) {
 
 export function renderHighlights({ books, onOpen }) {
   const rows = books.flatMap(b => (b.highlights || []).map(h => ({ b, h })));
+  const colorHex = { yellow:'#fef08a', green:'#bbf7d0', blue:'#bae6fd', pink:'#fbcfe8', orange:'#fed7aa' };
 
   let html = '<div class="section-head"><h2>Highlights &amp; Notes</h2></div>';
   if (rows.length) {
     html += '<div class="list">';
-    html += rows.map(x => `
-      <div class="list-row highlight-row" data-open="${x.b.id}" data-page="${Number(x.h.page) || 0}">
-        <span>🟨</span>
-        <div class="grow">
-          <strong>${escapeHtml(titleOf(x.b))}</strong>
-          <div class="highlight-quote">${escapeHtml(x.h.text)}</div>
-          ${x.h.note ? `<div class="highlight-note">📝 ${escapeHtml(x.h.note)}</div>` : ''}
-          <div class="muted">Page ${Number(x.h.page || 0) + 1}</div>
-        </div>
-        <button class="btn" data-open="${x.b.id}" data-page="${Number(x.h.page) || 0}">Open</button>
-      </div>`).join('');
+    html += rows.map(x => {
+      const dot = x.h.color
+        ? `<span class="highlight-color-dot" style="background:${colorHex[x.h.color] || '#fef08a'}"></span>`
+        : '';
+      return `
+        <div class="list-row highlight-row" data-open="${x.b.id}" data-page="${Number(x.h.page) || 0}">
+          <span style="font-size:18px">🖊</span>
+          <div class="grow">
+            <strong>${escapeHtml(titleOf(x.b))}</strong>
+            <div class="highlight-quote">${dot}${escapeHtml(x.h.text)}</div>
+            ${x.h.note ? `<div class="highlight-note">📝 ${escapeHtml(x.h.note)}</div>` : ''}
+            <div class="muted" style="margin-top:4px">Page ${Number(x.h.page || 0) + 1}</div>
+          </div>
+          <button class="btn" data-open="${x.b.id}" data-page="${Number(x.h.page) || 0}">Open</button>
+        </div>`;
+    }).join('');
     html += '</div>';
   } else {
-    html += '<div class="empty">Select text while reading and choose Highlight or Note.</div>';
+    html += '<div class="empty"><h3>No highlights yet</h3><p>Select text while reading, pick a colour, and tap Highlight.</p></div>';
   }
 
   $('#content').innerHTML = html;
@@ -175,9 +181,7 @@ export function renderHighlights({ books, onOpen }) {
     })
   );
   document.querySelectorAll('.highlight-row').forEach(el =>
-    el.addEventListener('click', () =>
-      onOpen(el.dataset.open, Number(el.dataset.page || 0))
-    )
+    el.addEventListener('click', () => onOpen(el.dataset.open, Number(el.dataset.page || 0)))
   );
 }
 
@@ -185,29 +189,48 @@ export function renderHighlights({ books, onOpen }) {
 // Upload screen
 // ---------------------------------------------------------------------------
 
-export function renderUpload({ onAddBooks }) {
+export function renderUpload({ onAddBooks, onExportBackup, onImportBackup, onExportHighlights }) {
   $('#content').innerHTML = `
     <div class="section-head"><h2>Add Books</h2></div>
     <div class="upload-zone" id="drop">
-      <h2>Turn your PDF into a book</h2>
-      <p>Alok Reader extracts text from text-based PDFs and creates a reflowable reading version. The original PDF is kept as a fallback.</p>
+      <div class="upload-icon">📄</div>
+      <h2>Drop a PDF to start reading</h2>
+      <p>Alok Reader extracts text from text-based PDFs and turns it into a clean, reflowable reading experience. The original PDF is kept as fallback.</p>
       <button id="choose" class="btn primary">Choose PDF files</button>
+    </div>
+
+    <div class="backup-section">
+      <h3>📦 Backup &amp; Restore</h3>
+      <p>Export your entire library — books, highlights, bookmarks and reading progress — as a JSON file you can restore on any device. The original PDF binaries are not included (re-import the PDFs after restoring).</p>
+      <div class="backup-actions">
+        <button id="exportBackup" class="btn primary">⬇ Export backup</button>
+        <label class="btn" id="importBackupLabel" style="cursor:pointer">
+          ⬆ Import backup
+          <input type="file" id="importBackupInput" accept=".json" hidden>
+        </label>
+        <button id="exportHighlights" class="btn">📝 Export highlights (.md)</button>
+      </div>
     </div>`;
 
   $('#choose').onclick = onAddBooks;
+  $('#exportBackup')?.addEventListener('click', onExportBackup);
+  $('#exportHighlights')?.addEventListener('click', onExportHighlights);
+  $('#importBackupInput')?.addEventListener('change', e => {
+    const f = e.target.files?.[0];
+    if (f) onImportBackup(f);
+    e.target.value = '';
+  });
 
   const drop = $('#drop');
-  ['dragenter', 'dragover'].forEach(ev =>
+  ['dragenter','dragover'].forEach(ev =>
     drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); })
   );
-  ['dragleave', 'drop'].forEach(ev =>
+  ['dragleave','drop'].forEach(ev =>
     drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); })
   );
   drop.addEventListener('drop', e => {
-    // Bubble up via a custom event so app.js can handle the files
     drop.dispatchEvent(new CustomEvent('files-dropped', {
-      bubbles: true,
-      detail: { files: e.dataTransfer.files },
+      bubbles: true, detail: { files: e.dataTransfer.files },
     }));
   });
 }

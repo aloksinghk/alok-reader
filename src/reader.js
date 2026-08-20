@@ -18,9 +18,11 @@ import {
   removeHighlightMarks,
   getActiveSelection,
   createHighlightRecord,
+  HIGHLIGHT_COLORS,
 } from './highlights.js';
+import { showDictionary, closeDictionary, isSingleWord } from './dictionary.js';
 import { putBook }             from './db.js';
-import { escapeHtml, titleOf, $, showToast, setLoading, setLoadingMessage } from './utils.js';
+import { escapeHtml, titleOf, $, showToast } from './utils.js';
 
 // ---------------------------------------------------------------------------
 // Module state
@@ -34,7 +36,8 @@ let readerBookmarks   = [];
 let readerHighlights  = [];
 let rawReadingHtml    = '';
 let activeSelection   = null;
-let onCloseReader     = null;  // callback → app.js
+let selectedColor     = 'yellow';   // current highlight colour
+let onCloseReader     = null;
 let settingsListenersReady = false;
 
 // ---------------------------------------------------------------------------
@@ -511,8 +514,6 @@ function loadHighlights() {
 
 function closeSelectionMenu() {
   $('#selectionMenu')?.classList.add('hidden');
-  // Note: activeSelection is cleared by the caller AFTER using it,
-  // not here, to avoid the race between mousedown and click events.
 }
 
 function clearActiveSelection() {
@@ -524,10 +525,73 @@ function openSelectionMenu() {
   const menu   = $('#selectionMenu');
   if (!picked || !menu) return;
   activeSelection = picked;
+
+  // Build colour swatches row
+  const swatches = HIGHLIGHT_COLORS.map(c => `
+    <button class="color-swatch swatch-${c.id} ${c.id === selectedColor ? 'active' : ''}"
+      data-color="${c.id}" title="${c.label}" aria-label="Highlight ${c.label}"></button>
+  `).join('');
+
+  // Dictionary button only for single words
+  const word        = picked.text.trim();
+  const singleWord  = isSingleWord(word);
+  const dictBtn     = singleWord
+    ? `<button class="selection-action" id="selectionDict" role="menuitem">📖 Define</button>`
+    : '';
+
+  menu.innerHTML = `
+    <div class="selection-menu-row" style="padding:4px 6px 2px">
+      ${swatches}
+    </div>
+    <div class="selection-divider"></div>
+    <div class="selection-menu-row">
+      <button class="selection-action" id="selectionHighlight" role="menuitem">🖊 Highlight</button>
+      <button class="selection-action" id="selectionNote" role="menuitem">📝 Note</button>
+      ${dictBtn}
+    </div>`;
+
+  // Position
   const rect = picked.range.getBoundingClientRect();
-  menu.style.left = Math.max(8, Math.min(window.innerWidth - 210, rect.left + rect.width / 2 - 100)) + 'px';
-  menu.style.top  = Math.max(72, rect.top - 52) + 'px';
+  const menuW = 220;
+  let left = rect.left + rect.width / 2 - menuW / 2;
+  left = Math.max(8, Math.min(window.innerWidth - menuW - 8, left));
+  const top = Math.max(64, rect.top - 90);
+  menu.style.left = left + 'px';
+  menu.style.top  = top  + 'px';
   menu.classList.remove('hidden');
+
+  // Swatch click — change selectedColor + re-render active swatches
+  menu.querySelectorAll('.color-swatch').forEach(btn => {
+    btn.addEventListener('mousedown', e => e.preventDefault());
+    btn.addEventListener('click', () => {
+      selectedColor = btn.dataset.color;
+      menu.querySelectorAll('.color-swatch').forEach(s =>
+        s.classList.toggle('active', s.dataset.color === selectedColor)
+      );
+    });
+  });
+
+  // Highlight
+  menu.querySelector('#selectionHighlight')?.addEventListener('mousedown', e => e.preventDefault());
+  menu.querySelector('#selectionHighlight')?.addEventListener('click',     createHighlightFromSelection);
+
+  // Note
+  menu.querySelector('#selectionNote')?.addEventListener('mousedown', e => e.preventDefault());
+  menu.querySelector('#selectionNote')?.addEventListener('click',     createNoteFromSelection);
+
+  // Dictionary
+  if (singleWord) {
+    menu.querySelector('#selectionDict')?.addEventListener('mousedown', e => e.preventDefault());
+    menu.querySelector('#selectionDict')?.addEventListener('click', () => {
+      closeSelectionMenu();
+      clearActiveSelection();
+      const r = picked.range.getBoundingClientRect();
+      showDictionary(word, r);
+    });
+  }
+
+  // Prevent menu close when clicking inside the menu
+  menu.addEventListener('mousedown', e => e.stopPropagation(), { once: false });
 }
 
 async function saveHighlightRecord(record) {
@@ -550,7 +614,7 @@ async function saveHighlightRecord(record) {
 
 async function createHighlightFromSelection() {
   if (!activeSelection) return;
-  const record = createHighlightRecord(activeSelection, readerPhysicalPage, '');
+  const record = createHighlightRecord(activeSelection, readerPhysicalPage, '', selectedColor);
   closeSelectionMenu();
   clearActiveSelection();
   window.getSelection()?.removeAllRanges();
@@ -565,7 +629,7 @@ async function createNoteFromSelection() {
   const note = window.prompt('Add a note for this highlight:', '');
   window.getSelection()?.removeAllRanges();
   if (note !== null) {
-    const record = createHighlightRecord(picked, readerPhysicalPage, note.trim());
+    const record = createHighlightRecord(picked, readerPhysicalPage, note.trim(), selectedColor);
     await saveHighlightRecord(record);
   }
 }
@@ -651,6 +715,7 @@ export function initReader(opts = {}) {
   // --- Static button wiring ---
   $('#readerClose').onclick = async () => {
     $('#reader').classList.add('hidden');
+    closeDictionary();
     current = null;
     if (onCloseReader) await onCloseReader();
   };
@@ -690,16 +755,12 @@ export function initReader(opts = {}) {
   $('#prevReaderPage')?.addEventListener('click', () => goToPage(getUnitIndex() - 1));
   $('#nextReaderPage')?.addEventListener('click', () => goToPage(getUnitIndex() + 1));
 
-  // Selection / highlight menu
-  $('#selectionHighlight')?.addEventListener('mousedown', e => e.preventDefault());
-  $('#selectionNote')?.addEventListener('mousedown',      e => e.preventDefault());
-  $('#selectionHighlight')?.addEventListener('click',     createHighlightFromSelection);
-  $('#selectionNote')?.addEventListener('click',          createNoteFromSelection);
-  $('#selectionMenu')?.addEventListener('mousedown',      e => e.stopPropagation());
+  // Selection / highlight menu — built dynamically in openSelectionMenu()
   document.addEventListener('mousedown', e => {
     if (!$('#selectionMenu')?.contains(e.target)) {
       closeSelectionMenu();
       clearActiveSelection();
+      closeDictionary();
     }
   });
 
@@ -720,6 +781,7 @@ export function initReader(opts = {}) {
     if (e.key === 'Escape') {
       const shortcuts = document.getElementById('shortcutsOverlay');
       if (shortcuts) { shortcuts.remove(); return; }
+      closeDictionary();
       $('#readerClose').click();
     }
     if (e.key === 'f') $('#readerSearchBtn').click();
