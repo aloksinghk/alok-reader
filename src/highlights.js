@@ -199,6 +199,7 @@ export function getActiveSelection() {
     el = el.parentElement;
   }
 
+  // Find which .book-page section the selection starts in
   const section = range.startContainer.nodeType === Node.TEXT_NODE
     ? range.startContainer.parentElement?.closest('.book-page')
     : range.startContainer.closest?.('.book-page');
@@ -206,12 +207,22 @@ export function getActiveSelection() {
   const sectionStart = section ? offsetOfRangeStart(range, section) : null;
   const sectionEnd   = section ? offsetOfRangeEnd(range, section)   : null;
 
+  // Determine the section index (0 = left/only page, 1 = right spread page)
+  // so the caller can compute the correct physical page number.
+  let sectionIndex = 0;
+  if (section) {
+    const allSections = [...document.querySelectorAll('#readingText .book-page')];
+    sectionIndex = allSections.indexOf(section);
+    if (sectionIndex < 0) sectionIndex = 0;
+  }
+
   return {
     sel,
     range: range.cloneRange(),
     text,
     paragraphId, startInParagraph, endInParagraph,
     sectionStart, sectionEnd,
+    sectionIndex,   // 0 for left/single page, 1 for right spread page
   };
 }
 
@@ -221,7 +232,9 @@ export function getActiveSelection() {
 export function createHighlightRecord(selection, page, note = '', color = 'yellow') {
   return {
     id:               uid(),
-    page,
+    // Add sectionIndex offset so right-page highlights store the correct
+    // physical page number (page + 1 for the right spread page)
+    page:             page + (selection.sectionIndex || 0),
     text:             selection.text,
     note:             note || '',
     color,
