@@ -1,18 +1,23 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f7f3eb">
-<meta name="description" content="Alok Reader — personal Kindle-style PDF to reflowable reader">
-<link rel="manifest" href="manifest.webmanifest">
-<title>Alok Reader v2</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f7f3eb">
+  <meta name="description" content="Alok Reader — personal Kindle-style PDF to reflowable reader">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Alok Reader v2</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
 <div id="app">
+  <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
-    <div class="brand"><div class="brand-mark">A</div><div><strong>Alok Reader</strong><span>Your private library</span></div></div>
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <div><strong>Alok Reader</strong><span>Your private library</span></div>
+    </div>
     <nav>
       <button class="nav-item active" data-screen="library">⌂ <span>Home</span></button>
       <button class="nav-item" data-screen="library">📚 <span>Library</span></button>
@@ -21,93 +26,156 @@
       <button class="nav-item" data-screen="highlights">🟨 <span>Highlights</span></button>
       <label class="nav-item upload-nav" for="fileInput">＋ <span>Add Books</span></label>
     </nav>
-    <div class="sidebar-footer"><small>Alok Reader v2</small><small>Reflowable reading • Local-first</small></div>
+    <div class="sidebar-footer">
+      <small>Alok Reader v2</small>
+      <small>Reflowable reading · Local-first</small>
+    </div>
   </aside>
 
+  <!-- Main content -->
   <main class="main">
     <header class="topbar">
       <button id="menuBtn" class="icon-btn mobile-only">☰</button>
       <div class="top-title" id="topTitle">Home</div>
       <div class="top-actions">
-        <input id="globalSearch" class="search" placeholder="Search library…" />
-        <button class="avatar">A</button>
+        <input id="globalSearch" class="search" placeholder="Search library…" aria-label="Search library">
+        <button class="avatar" aria-label="User menu">A</button>
       </div>
     </header>
-    <section id="content" class="content"></section>
+    <section id="content" class="content" aria-live="polite"></section>
   </main>
 </div>
 
-<div id="reader" class="reader hidden">
+<!-- Reader overlay -->
+<div id="reader" class="reader hidden" role="main" aria-label="Book reader">
   <header class="reader-top">
-    <button id="readerClose" class="reader-icon">←</button>
+    <button id="readerClose" class="reader-icon" title="Back to library" aria-label="Close reader">←</button>
     <div class="reader-book-title" id="readerBookTitle"></div>
     <div class="reader-top-right">
-      <button id="readerContentsBtn" class="reader-icon" title="Table of contents">☰</button>
-      <button id="readerBookmarksBtn" class="reader-icon" title="Bookmarks">🔖</button>
-      <button id="readerBookmarkBtn" class="reader-icon reader-bookmark" title="Bookmark this page">☆</button>
-      <button id="readerSearchBtn" class="reader-icon" title="Search">⌕</button>
-      <button id="readerAa" class="reader-icon" title="Reading settings">Aa</button>
-      <button id="readerOriginal" class="reader-icon" title="View original PDF">PDF</button>
+      <button id="readerContentsBtn" class="reader-icon" title="Table of contents (t)" aria-label="Table of contents">☰</button>
+      <button id="readerBookmarksBtn" class="reader-icon" title="Bookmarks" aria-label="Bookmarks">🔖</button>
+      <button id="readerBookmarkBtn" class="reader-icon reader-bookmark" title="Bookmark this page (b)" aria-label="Bookmark this page">☆</button>
+      <button id="readerSearchBtn" class="reader-icon" title="Search in book (f)" aria-label="Search">⌕</button>
+      <button id="readerAa" class="reader-icon" title="Reading settings" aria-label="Reading settings">Aa</button>
+      <button id="readerOriginal" class="reader-icon" title="View original PDF" aria-label="View original PDF">PDF</button>
     </div>
   </header>
 
-  <aside id="readerContents" class="reader-contents hidden"></aside>
-  <aside id="readerBookmarks" class="reader-contents hidden"></aside>
-  <div id="selectionMenu" class="selection-menu hidden">
-    <button id="selectionHighlight" class="selection-action">🟨 Highlight</button>
-    <button id="selectionNote" class="selection-action">📝 Note</button>
-  </div>
-  <div id="readerSearch" class="reader-search hidden">
-    <input id="readerSearchInput" placeholder="Search in this book…">
-    <span id="readerSearchCount"></span>
+  <!-- TOC panel -->
+  <aside id="readerContents" class="reader-contents hidden" aria-label="Table of contents"></aside>
+  <!-- Bookmarks panel -->
+  <aside id="readerBookmarks" class="reader-contents hidden" aria-label="Bookmarks"></aside>
+
+  <!-- Text selection menu -->
+  <div id="selectionMenu" class="selection-menu hidden" role="menu" aria-label="Text actions">
+    <button id="selectionHighlight" class="selection-action" role="menuitem">🟨 Highlight</button>
+    <button id="selectionNote"      class="selection-action" role="menuitem">📝 Note</button>
   </div>
 
-  <main class="reading-shell">
-    <div class="chapter-kicker" id="chapterKicker">Reading</div>
-    <h1 id="readingTitle"></h1>
-    <div class="reading-author" id="readingAuthor"></div>
-    <article id="readingText" class="reading-text"></article>
+  <!-- Search bar -->
+  <div id="readerSearch" class="reader-search hidden">
+    <input id="readerSearchInput" placeholder="Search in this book…" aria-label="Search in book">
+    <span id="readerSearchCount" aria-live="polite"></span>
+  </div>
+
+  <!-- Reading area -->
+  <main class="reading-shell" aria-label="Reading area">
+    <article id="readingText" class="reading-text serif" aria-live="polite"></article>
   </main>
 
+  <!-- Bottom nav bar -->
   <footer class="reader-bottom">
-  <button id="prevReaderPage" class="reader-bottom-btn" title="Previous page">‹</button>
-  <div class="progress-label" id="readerProgressLabel">Page 1 / 1</div>
-  <input id="readerProgress" type="range" min="0" max="100" value="0">
-  <button id="nextReaderPage" class="reader-bottom-btn" title="Next page">›</button>
-  <button id="bookmarkBtn" class="reader-bottom-btn">🔖</button>
-  <button id="settingsBtn" class="reader-bottom-btn">Aa</button>
-</footer>
+    <button id="prevReaderPage" class="reader-bottom-btn" title="Previous page" aria-label="Previous page">‹</button>
+    <div class="progress-label" id="readerProgressLabel" aria-live="polite">Page 1 / 1</div>
+    <input id="readerProgress" type="range" min="0" max="100" value="0" aria-label="Reading progress">
+    <button id="nextReaderPage" class="reader-bottom-btn" title="Next page" aria-label="Next page">›</button>
+    <button id="bookmarkBtn"  class="reader-bottom-btn" aria-label="Bookmark">🔖</button>
+    <button id="settingsBtn"  class="reader-bottom-btn" aria-label="Reading settings">Aa</button>
+  </footer>
 
-  <div id="readingSettings" class="settings-popover hidden">
-    <div class="settings-header"><strong class="reading-settings-title">Reading settings</strong><button id="closeSettings">×</button></div>
-    <div class="setting-group"><label>Font</label><div class="choice-row" id="fontChoices">
-      <button data-font="serif">Serif</button><button data-font="sans">Sans</button><button data-font="book">Book</button>
-    </div></div>
-    <div class="setting-group"><label>Text size</label><div class="choice-row">
-      <button id="fontDown">A−</button><span id="fontSizeValue">19px</span><button id="fontUp">A+</button>
-    </div></div>
-    <div class="setting-group"><label>Theme</label><div class="choice-row" id="themeChoices">
-      <button data-theme="light">Light</button><button data-theme="sepia">Sepia</button><button data-theme="dark">Dark</button><button data-theme="black">Black</button>
-    </div></div>
-    <div class="setting-group"><label>Line spacing</label><div class="choice-row" id="lineChoices">
-      <button data-line="1.35">Compact</button><button data-line="1.6">Normal</button><button data-line="1.9">Spacious</button>
-    </div></div>
-    <div class="setting-group"><label>Page layout</label><div class="choice-row" id="layoutChoices">
-      <button data-layout="single">Single page</button><button data-layout="spread">Two-page spread</button>
-    </div></div>
-    <div class="setting-group"><label>Text width</label><div class="choice-row" id="widthChoices">
-      <button data-width="680">Narrow</button><button data-width="820">Normal</button><button data-width="1000">Wide</button>
-    </div></div>
+  <!-- Settings popover -->
+  <div id="readingSettings" class="settings-popover hidden" role="dialog" aria-label="Reading settings">
+    <div class="settings-header">
+      <strong class="reading-settings-title">Reading settings</strong>
+      <button id="closeSettings" aria-label="Close settings">×</button>
+    </div>
+
+    <div class="setting-group">
+      <label>Font</label>
+      <div class="choice-row" id="fontChoices">
+        <button data-font="serif">Serif</button>
+        <button data-font="sans">Sans</button>
+        <button data-font="book">Book</button>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>Text size</label>
+      <div class="choice-row">
+        <button id="fontDown" aria-label="Decrease font size">A−</button>
+        <span id="fontSizeValue">19px</span>
+        <button id="fontUp" aria-label="Increase font size">A+</button>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>Theme</label>
+      <div class="choice-row" id="themeChoices">
+        <button data-theme="light">Light</button>
+        <button data-theme="sepia">Sepia</button>
+        <button data-theme="dark">Dark</button>
+        <button data-theme="black">Black</button>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>Line spacing</label>
+      <div class="choice-row" id="lineChoices">
+        <button data-line="1.35">Compact</button>
+        <button data-line="1.6">Normal</button>
+        <button data-line="1.9">Spacious</button>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>Page layout</label>
+      <div class="choice-row" id="layoutChoices">
+        <button data-layout="single">Single page</button>
+        <button data-layout="spread">Two-page spread</button>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>Text width</label>
+      <div class="choice-row" id="widthChoices">
+        <button data-width="680">Narrow</button>
+        <button data-width="820">Normal</button>
+        <button data-width="1000">Wide</button>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label style="color:#999">Press <kbd>?</kbd> for keyboard shortcuts</label>
+    </div>
   </div>
 </div>
 
-<div id="pdfViewer" class="reader hidden">
-  <header class="reader-top"><button id="pdfClose" class="reader-icon">←</button><div class="reader-book-title">Original PDF</div></header>
-  <div class="pdf-frame-wrap"><iframe id="pdfFrame" title="Original PDF"></iframe></div>
+<!-- PDF viewer overlay -->
+<div id="pdfViewer" class="reader hidden" aria-label="Original PDF viewer">
+  <header class="reader-top">
+    <button id="pdfClose" class="reader-icon" aria-label="Close PDF viewer">←</button>
+    <div class="reader-book-title">Original PDF</div>
+  </header>
+  <div class="pdf-frame-wrap">
+    <iframe id="pdfFrame" title="Original PDF" sandbox="allow-same-origin allow-scripts"></iframe>
+  </div>
 </div>
 
-<input id="fileInput" type="file" accept=".pdf,application/pdf" multiple hidden>
+<!-- Hidden file input -->
+<input id="fileInput" type="file" accept=".pdf,application/pdf" multiple hidden aria-hidden="true">
 
-<script type="module" src="app.js?v=2.15.2"></script>
+<!-- Toast and loading containers injected by utils.js -->
+
+<script type="module" src="app.js?v=3.0.0"></script>
 </body>
 </html>
