@@ -533,12 +533,13 @@ function openSelectionMenu() {
   `).join('');
 
   // Dictionary button only for single words
-  const word        = picked.text.trim();
-  const singleWord  = isSingleWord(word);
-  const dictBtn     = singleWord
+  const word       = picked.text.trim();
+  const singleWord = isSingleWord(word);
+  const dictBtn    = singleWord
     ? `<button class="selection-action" id="selectionDict" role="menuitem">📖 Define</button>`
     : '';
 
+  // Rebuild menu HTML
   menu.innerHTML = `
     <div class="selection-menu-row" style="padding:4px 6px 2px">
       ${swatches}
@@ -546,24 +547,26 @@ function openSelectionMenu() {
     <div class="selection-divider"></div>
     <div class="selection-menu-row">
       <button class="selection-action" id="selectionHighlight" role="menuitem">🖊 Highlight</button>
-      <button class="selection-action" id="selectionNote" role="menuitem">📝 Note</button>
+      <button class="selection-action" id="selectionNote"      role="menuitem">📝 Note</button>
       ${dictBtn}
     </div>`;
 
-  // Position
+  // Position above the selection
   const rect = picked.range.getBoundingClientRect();
-  const menuW = 220;
+  const menuW = 230;
   let left = rect.left + rect.width / 2 - menuW / 2;
   left = Math.max(8, Math.min(window.innerWidth - menuW - 8, left));
-  const top = Math.max(64, rect.top - 90);
-  menu.style.left = left + 'px';
-  menu.style.top  = top  + 'px';
+  const top = Math.max(64, rect.top - 96);
+  menu.style.left  = left + 'px';
+  menu.style.top   = top  + 'px';
+  menu.style.width = menuW + 'px';
   menu.classList.remove('hidden');
 
-  // Swatch click — change selectedColor + re-render active swatches
+  // ── Swatch listeners ──
   menu.querySelectorAll('.color-swatch').forEach(btn => {
-    btn.addEventListener('mousedown', e => e.preventDefault());
-    btn.addEventListener('click', () => {
+    btn.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
       selectedColor = btn.dataset.color;
       menu.querySelectorAll('.color-swatch').forEach(s =>
         s.classList.toggle('active', s.dataset.color === selectedColor)
@@ -571,27 +574,29 @@ function openSelectionMenu() {
     });
   });
 
-  // Highlight
-  menu.querySelector('#selectionHighlight')?.addEventListener('mousedown', e => e.preventDefault());
-  menu.querySelector('#selectionHighlight')?.addEventListener('click',     createHighlightFromSelection);
+  // ── Highlight button ──
+  const hlBtn = menu.querySelector('#selectionHighlight');
+  hlBtn?.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
+  hlBtn?.addEventListener('click',     e => { e.stopPropagation(); createHighlightFromSelection(); });
 
-  // Note
-  menu.querySelector('#selectionNote')?.addEventListener('mousedown', e => e.preventDefault());
-  menu.querySelector('#selectionNote')?.addEventListener('click',     createNoteFromSelection);
+  // ── Note button ──
+  const noteBtn = menu.querySelector('#selectionNote');
+  noteBtn?.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
+  noteBtn?.addEventListener('click',     e => { e.stopPropagation(); createNoteFromSelection(); });
 
-  // Dictionary
+  // ── Dictionary button ──
   if (singleWord) {
-    menu.querySelector('#selectionDict')?.addEventListener('mousedown', e => e.preventDefault());
-    menu.querySelector('#selectionDict')?.addEventListener('click', () => {
+    const dictEl = menu.querySelector('#selectionDict');
+    dictEl?.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
+    dictEl?.addEventListener('click', e => {
+      e.stopPropagation();
+      const capturedWord = word;
+      const capturedRect = picked.range.getBoundingClientRect();
       closeSelectionMenu();
       clearActiveSelection();
-      const r = picked.range.getBoundingClientRect();
-      showDictionary(word, r);
+      showDictionary(capturedWord, capturedRect);
     });
   }
-
-  // Prevent menu close when clicking inside the menu
-  menu.addEventListener('mousedown', e => e.stopPropagation(), { once: false });
 }
 
 async function saveHighlightRecord(record) {
@@ -755,13 +760,31 @@ export function initReader(opts = {}) {
   $('#prevReaderPage')?.addEventListener('click', () => goToPage(getUnitIndex() - 1));
   $('#nextReaderPage')?.addEventListener('click', () => goToPage(getUnitIndex() + 1));
 
-  // Selection / highlight menu — built dynamically in openSelectionMenu()
+  // Selection menu — built dynamically in openSelectionMenu().
+  // IMPORTANT: mousedown fires before mouseup/click, so we must NOT clear
+  // activeSelection when the user clicks inside the selection menu.
+  // We only clear it when clicking genuinely outside both the menu and
+  // the reading text (i.e. elsewhere on the page).
   document.addEventListener('mousedown', e => {
-    if (!$('#selectionMenu')?.contains(e.target)) {
-      closeSelectionMenu();
-      clearActiveSelection();
-      closeDictionary();
+    const menu = $('#selectionMenu');
+    if (menu && !menu.classList.contains('hidden') && menu.contains(e.target)) {
+      // Click is inside the menu — let the button's click handler run
+      return;
     }
+    // Clicking inside the reading area may start a new selection — don't
+    // close the menu yet; wait for mouseup to re-evaluate.
+    const readingText = $('#readingText');
+    if (readingText && readingText.contains(e.target)) {
+      // Close the current menu (a new selection may be starting)
+      closeSelectionMenu();
+      // Keep activeSelection a bit longer in case the user just
+      // clicked without moving — mouseup will clear if no new selection.
+      return;
+    }
+    // Clicked outside everything — close menu and clear state
+    closeSelectionMenu();
+    clearActiveSelection();
+    closeDictionary();
   });
 
   const reader = $('#readingText');
