@@ -542,8 +542,10 @@ async function saveHighlightRecord(record) {
   }
   current.highlights = readerHighlights;
   await putBook(current);
-  removeHighlightMarks();
-  applyStoredHighlights(readerHighlights, readerPhysicalPage);
+
+  // Re-render the page so highlights apply to a clean DOM
+  // (avoids double-wrapping if the mark is already in the DOM)
+  renderReaderPage();
 }
 
 async function createHighlightFromSelection() {

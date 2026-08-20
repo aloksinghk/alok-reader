@@ -1,25 +1,13 @@
 /**
  * highlights.js — highlight storage, application and selection tooling
- *
- * Improvements over v2.15.2:
- *  - Highlights are stored with { paragraphId, startInParagraph, endInParagraph }
- *    in addition to the raw text, so they survive repagination and font changes.
- *  - The apply function first tries the stable paragraph-offset path, then falls
- *    back to the legacy text-search path for existing highlights.
- *  - All DOM manipulation is isolated here; the reader module calls these functions.
  */
 
 import { uid } from './utils.js';
 
 // ---------------------------------------------------------------------------
-// Text-node helpers
+// Text-node walker (used consistently everywhere)
 // ---------------------------------------------------------------------------
 
-/**
- * Collect ALL text nodes under root (including whitespace-only nodes).
- * This must be consistent across offset computation and range wrapping —
- * both must walk the same set of nodes.
- */
 function allTextNodes(root) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   const out = [];
@@ -28,52 +16,44 @@ function allTextNodes(root) {
   return out;
 }
 
-/**
- * Walk ALL text nodes in root and return the character offset of
- * range.startContainer / startOffset.
- */
-function getStartOffset(range, root) {
-  const nodes = allTextNodes(root);
+// ---------------------------------------------------------------------------
+// Offset helpers — always scoped to a specific root element
+// ---------------------------------------------------------------------------
+
+function offsetOfRangeStart(range, root) {
   let pos = 0;
-  for (const n of nodes) {
+  for (const n of allTextNodes(root)) {
     if (n === range.startContainer) return pos + range.startOffset;
     pos += n.nodeValue.length;
   }
   return 0;
 }
 
-/**
- * Walk ALL text nodes in root and return the character offset of
- * range.endContainer / endOffset.
- */
-function getEndOffset(range, root) {
-  const nodes = allTextNodes(root);
+function offsetOfRangeEnd(range, root) {
   let pos = 0;
-  for (const n of nodes) {
+  for (const n of allTextNodes(root)) {
     if (n === range.endContainer) return pos + range.endOffset;
     pos += n.nodeValue.length;
   }
-  // fallback: total length
-  return nodes.reduce((s, n) => s + n.nodeValue.length, 0);
+  return pos;
 }
 
 // ---------------------------------------------------------------------------
-// DOM wrapping
+// Core DOM wrap — applies a [start, end) char range inside root
 // ---------------------------------------------------------------------------
 
-/**
- * Wrap a character range [start, end) across text nodes inside root with a
- * <mark class="reader-highlight"> element.
- * Uses the same allTextNodes() walker as the offset computation.
- */
 function wrapRange(root, start, end) {
-  if (start >= end) return false;
+  if (start < 0 || start >= end) return false;
   const nodes = allTextNodes(root);
   if (!nodes.length) return false;
 
-  let pos = 0, startNode, endNode, startLocal, endLocal;
+  let pos = 0;
+  let startNode, startLocal, endNode, endLocal;
+
   for (const n of nodes) {
-    const nEnd = pos + n.nodeValue.length;
+    const len  = n.nodeValue.length;
+    const nEnd = pos + len;
+
     if (startNode === undefined && start >= pos && start <= nEnd) {
       startNode  = n;
       startLocal = start - pos;
@@ -89,13 +69,14 @@ function wrapRange(root, start, end) {
   if (!startNode || !endNode) return false;
 
   try {
-    const range = document.createRange();
-    range.setStart(startNode, startLocal);
-    range.setEnd(endNode, endLocal);
+    const r = document.createRange();
+    r.setStart(startNode, startLocal);
+    r.setEnd(endNode, endLocal);
+    if (r.collapsed) return false;
     const mark = document.createElement('mark');
     mark.className = 'reader-highlight';
-    mark.appendChild(range.extractContents());
-    range.insertNode(mark);
+    mark.appendChild(r.extractContents());
+    r.insertNode(mark);
     return true;
   } catch {
     return false;
@@ -103,75 +84,103 @@ function wrapRange(root, start, end) {
 }
 
 // ---------------------------------------------------------------------------
-// Apply highlights to rendered DOM
+// Text-search fallback
 // ---------------------------------------------------------------------------
 
 /**
- * Apply a single highlight to the rendered reader page using the stable
- * paragraph-ID path first, then the legacy text-search fallback.
- *
- * @param {HTMLElement} pageSection   The .book-page element
- * @param {Object}      h             Highlight record
+ * Find `target` text inside `root` by scanning all text nodes,
+ * then wrap it. Handles whitespace normalisation.
  */
-export function applyHighlightToPage(pageSection, h) {
-  if (!pageSection || !h?.text) return;
+function applyByTextSearch(root, target) {
+  const nodes = allTextNodes(root);
+  if (!nodes.length || !target) return false;
 
-  // --- Path 1: paragraph-ID + intra-paragraph offsets (new format) ---
-  if (h.paragraphId && typeof h.startInParagraph === 'number') {
-    const para = pageSection.querySelector(`[data-pid="${h.paragraphId}"]`);
-    if (para) {
-      const ok = wrapRange(para, h.startInParagraph, h.endInParagraph);
-      if (ok) return;
+  // Build a plain-text string and a parallel char→node map
+  const chars = []; // each entry: { node, indexInNode }
+  for (const n of nodes) {
+    for (let i = 0; i < n.nodeValue.length; i++) {
+      chars.push({ node: n, idx: i });
     }
   }
 
-  // --- Path 2: page-level character offsets (v2.15.2 format) ---
-  if (typeof h.startOffset === 'number' && typeof h.endOffset === 'number') {
-    const ok = wrapRange(pageSection, h.startOffset, h.endOffset);
-    if (ok) return;
+  const rawText  = chars.map(c => c.node.nodeValue[c.idx]).join('');
+  const normText = rawText.replace(/\s+/g, ' ');
+  const normTgt  = target.replace(/\s+/g, ' ');
+  const at       = normText.indexOf(normTgt);
+  if (at < 0) return false;
+
+  // Map normalised positions back to raw positions via a simple scan
+  function normToRaw(normPos) {
+    let norm = 0, raw = 0;
+    while (raw < rawText.length) {
+      // collapse a run of whitespace to one space in normalised
+      if (/\s/.test(rawText[raw])) {
+        if (norm === normPos) return raw;
+        norm++;
+        while (raw < rawText.length && /\s/.test(rawText[raw])) raw++;
+      } else {
+        if (norm === normPos) return raw;
+        norm++;
+        raw++;
+      }
+    }
+    return raw;
   }
 
-  // --- Path 3: text-search fallback ---
-  const target = h.text.trim().replace(/\s+/g, ' ');
-  if (!target) return;
-  const nodes  = allTextNodes(pageSection);
-  let combined = '';
-  for (const n of nodes) {
-    combined += n.nodeValue;
-  }
-  // Normalise whitespace in combined text to match the stored highlight text
-  const normalised = combined.replace(/\s+/g, ' ');
-  const at = normalised.indexOf(target);
-  if (at < 0) return;
-  // Map normalised offset back to raw offset
-  let rawAt = 0, seen = 0;
-  for (let i = 0; i < combined.length; i++) {
-    if (seen >= at) { rawAt = i; break; }
-    if (combined[i] !== ' ' || (i > 0 && combined[i - 1] !== ' ')) seen++;
-    else seen++; // simple 1:1 — whitespace collapse is handled by indexOf match
-  }
-  wrapRange(pageSection, at, at + target.length);
+  const rawStart = normToRaw(at);
+  const rawEnd   = normToRaw(at + normTgt.length);
+  return wrapRange(root, rawStart, rawEnd);
 }
 
-/**
- * Apply all stored highlights for the current book to the currently rendered
- * .book-page sections.
- *
- * @param {Array}       highlights   Array of highlight records
- * @param {number}      physicalPage Current 0-based physical page index
- */
+// ---------------------------------------------------------------------------
+// Public: apply a single highlight record to a .book-page element
+// ---------------------------------------------------------------------------
+
+export function applyHighlightToPage(section, h) {
+  if (!section || !h?.text) return;
+
+  // Path 1 — paragraphId + intra-paragraph char offsets (stable across repagination)
+  if (h.paragraphId && typeof h.startInParagraph === 'number' && h.startInParagraph < h.endInParagraph) {
+    const para = section.querySelector(`[data-pid="${h.paragraphId}"]`);
+    if (para && wrapRange(para, h.startInParagraph, h.endInParagraph)) return;
+  }
+
+  // Path 2 — section-level char offsets (stored relative to .book-page)
+  if (typeof h.sectionStart === 'number' && h.sectionStart < h.sectionEnd) {
+    if (wrapRange(section, h.sectionStart, h.sectionEnd)) return;
+  }
+
+  // Path 3 — text search fallback (works even when pagination changed)
+  applyByTextSearch(section, h.text);
+}
+
+// ---------------------------------------------------------------------------
+// Public: apply all highlights for the current physical page(s)
+// ---------------------------------------------------------------------------
+
 export function applyStoredHighlights(highlights, physicalPage) {
   if (!highlights?.length) return;
+
+  // sections[0] = left/only page, sections[1] = right spread page
   const sections = [...document.querySelectorAll('#readingText .book-page')];
+  if (!sections.length) return;
+
   for (const h of highlights) {
-    const pageDelta = Number(h.page) - physicalPage;
-    if (pageDelta >= 0 && pageDelta < sections.length) {
-      applyHighlightToPage(sections[pageDelta], h);
+    const hPage = Number(h.page);
+    // Check each rendered section
+    for (let i = 0; i < sections.length; i++) {
+      if (hPage === physicalPage + i) {
+        applyHighlightToPage(sections[i], h);
+        break;
+      }
     }
   }
 }
 
-/** Remove all <mark class="reader-highlight"> nodes from the reading area. */
+// ---------------------------------------------------------------------------
+// Public: remove all highlight marks from the reading area
+// ---------------------------------------------------------------------------
+
 export function removeHighlightMarks() {
   document.querySelectorAll('#readingText mark.reader-highlight').forEach(m => {
     const p = m.parentNode;
@@ -182,23 +191,21 @@ export function removeHighlightMarks() {
 }
 
 // ---------------------------------------------------------------------------
-// Selection helpers
+// Public: capture current text selection
 // ---------------------------------------------------------------------------
 
-/**
- * Return the current text selection if it is inside #readingText.
- * @returns {{ sel, range, text, paragraphId, startInParagraph, endInParagraph } | null}
- */
 export function getActiveSelection() {
   const sel = window.getSelection();
   if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+
   const range  = sel.getRangeAt(0);
   const reader = document.getElementById('readingText');
   if (!reader || !reader.contains(range.commonAncestorContainer)) return null;
+
   const text = sel.toString().trim().replace(/\s+/g, ' ');
   if (!text) return null;
 
-  // Find the [data-pid] paragraph the selection starts in
+  // Find the nearest [data-pid] ancestor of the selection start
   let paragraphId      = null;
   let startInParagraph = null;
   let endInParagraph   = null;
@@ -209,57 +216,52 @@ export function getActiveSelection() {
   while (el && el !== reader) {
     if (el.dataset?.pid) {
       paragraphId      = el.dataset.pid;
-      startInParagraph = getStartOffset(range, el);
-      endInParagraph   = getEndOffset(range, el);
+      startInParagraph = offsetOfRangeStart(range, el);
+      endInParagraph   = offsetOfRangeEnd(range, el);
       break;
     }
     el = el.parentElement;
   }
 
-  // Page-level offsets using the same allTextNodes walker used by wrapRange
-  const startOffset = getStartOffset(range, reader);
-  const endOffset   = getEndOffset(range, reader);
+  // Section-level offsets — scoped to the .book-page, not #readingText
+  // This ensures they match what wrapRange sees when re-applying.
+  const section = range.startContainer.nodeType === Node.TEXT_NODE
+    ? range.startContainer.parentElement?.closest('.book-page')
+    : range.startContainer.closest?.('.book-page');
 
-  // Clone the range so it survives removeAllRanges()
+  const sectionStart = section ? offsetOfRangeStart(range, section) : null;
+  const sectionEnd   = section ? offsetOfRangeEnd(range, section)   : null;
+
+  // Clone range before removeAllRanges() invalidates it
   const frozenRange = range.cloneRange();
 
   return {
     sel,
-    range: frozenRange,
+    range:           frozenRange,
     text,
     paragraphId,
     startInParagraph,
     endInParagraph,
-    startOffset,
-    endOffset,
+    sectionStart,
+    sectionEnd,
   };
 }
 
 // ---------------------------------------------------------------------------
-// Highlight record factory
+// Public: build a highlight record from a captured selection
 // ---------------------------------------------------------------------------
 
-/**
- * Create a new highlight record from a selection result.
- *
- * @param {Object} selection   Result of getActiveSelection()
- * @param {number} page        Current physical page index
- * @param {string} note        Optional note text
- * @returns {Object}           Highlight record ready to store
- */
 export function createHighlightRecord(selection, page, note = '') {
   return {
     id:               uid(),
     page,
     text:             selection.text,
     note:             note || '',
-    // Stable paragraph-based offsets (new)
     paragraphId:      selection.paragraphId,
     startInParagraph: selection.startInParagraph,
     endInParagraph:   selection.endInParagraph,
-    // Legacy page-level offsets (kept for backward compat)
-    startOffset:      selection.startOffset,
-    endOffset:        selection.endOffset,
+    sectionStart:     selection.sectionStart,
+    sectionEnd:       selection.sectionEnd,
     createdAt:        new Date().toISOString(),
   };
 }
