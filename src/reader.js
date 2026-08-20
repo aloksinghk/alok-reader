@@ -511,6 +511,11 @@ function loadHighlights() {
 
 function closeSelectionMenu() {
   $('#selectionMenu')?.classList.add('hidden');
+  // Note: activeSelection is cleared by the caller AFTER using it,
+  // not here, to avoid the race between mousedown and click events.
+}
+
+function clearActiveSelection() {
   activeSelection = null;
 }
 
@@ -545,6 +550,7 @@ async function createHighlightFromSelection() {
   if (!activeSelection) return;
   const record = createHighlightRecord(activeSelection, readerPhysicalPage, '');
   closeSelectionMenu();
+  clearActiveSelection();
   window.getSelection()?.removeAllRanges();
   await saveHighlightRecord(record);
 }
@@ -553,6 +559,7 @@ async function createNoteFromSelection() {
   if (!activeSelection) return;
   const picked = activeSelection;
   closeSelectionMenu();
+  clearActiveSelection();
   const note = window.prompt('Add a note for this highlight:', '');
   window.getSelection()?.removeAllRanges();
   if (note !== null) {
@@ -688,7 +695,10 @@ export function initReader(opts = {}) {
   $('#selectionNote')?.addEventListener('click',          createNoteFromSelection);
   $('#selectionMenu')?.addEventListener('mousedown',      e => e.stopPropagation());
   document.addEventListener('mousedown', e => {
-    if (!$('#selectionMenu')?.contains(e.target)) closeSelectionMenu();
+    if (!$('#selectionMenu')?.contains(e.target)) {
+      closeSelectionMenu();
+      clearActiveSelection();
+    }
   });
 
   const reader = $('#readingText');
