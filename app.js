@@ -408,12 +408,37 @@ function wrapAcrossNodes(root,nodes,start,end){
 
 function applyStoredHighlights(){
   if(!current||!readerHighlights.length)return;
+
   const sections=[...document.querySelectorAll('#readingText .book-page')];
+  if(!sections.length)return;
+
+  // Remove old marks before reapplying. Reader pages are frequently rebuilt
+  // after pagination/layout/font changes.
+  removeHighlightMarks();
+
   for(const h of readerHighlights){
     const page=Number(h.page);
-    if(page>=0&&page<sections.length){
-      if(!applyHighlightByOffset(sections[page],h)) applyHighlightToPage(sections[page],h);
+    const section=sections[page];
+
+    if(!section) continue;
+
+    let applied=false;
+
+    // Prefer stored offsets because they survive repeated rendering better.
+    if(typeof h.startOffset==='number' && typeof h.endOffset==='number'){
+      applied=applyHighlightByOffset(section,h);
     }
+
+    // Fallback for old highlights created before offsets were stored.
+    if(!applied){
+      applied=applyHighlightToPage(section,h);
+    }
+
+    console.log('Highlight restore', {
+      page,
+      text:h.text?.slice(0,50),
+      applied
+    });
   }
 }
 
@@ -489,7 +514,9 @@ async function saveHighlight(text,note=''){
   }else{
     readerHighlights.push({
       id:uid(),
-      page:readerPhysicalPage,
+      page:current.layout==='spread'
+        ? Math.floor(readerPhysicalPage/2)*2
+        : readerPhysicalPage,
       text:normalized,
       note:note||'',
       startOffset: getSelectionOffset(activeSelection?.range, $('#readingText')),
@@ -700,7 +727,11 @@ function renderReaderPage(){
 
   updatePageLabel();
   updateBookmarkButton();
-  requestAnimationFrame(applyStoredHighlights);
+
+  // Wait until browser paints the final reader DOM before adding marks.
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(applyStoredHighlights);
+  });
 }
 
 function getUnitCount(){
