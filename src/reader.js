@@ -52,9 +52,10 @@ export function getPageIndex()  { return readerPhysicalPage; }
 // ---------------------------------------------------------------------------
 
 function fontFamily(book) {
-  if (book?.font === 'sans')  return 'Inter,Arial,sans-serif';
+  if (book?.font === 'sans')  return "'Nunito','Inter',Arial,sans-serif";
   if (book?.font === 'book')  return '"Palatino Linotype",Palatino,Georgia,serif';
-  return 'Georgia,"Times New Roman",serif';
+  if (book?.font === 'hand')  return "'Caveat',cursive";
+  return "'Playfair Display',Georgia,serif";
 }
 
 function isEffectiveSpread() {
