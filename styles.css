@@ -628,49 +628,53 @@ mark.reader-highlight:not([data-color])    { background: #FEF08A; }
    DICTIONARY POPUP
    ================================================================ */
 .dict-popup {
-  position: fixed; z-index: 350;
-  background: #1A1A2E;
-  border: 1.5px solid #2D2D50;
+  position: fixed !important;
+  z-index: 9999 !important;
+  background: #1A1A2E !important;
+  border: 1.5px solid #3D3D60 !important;
   border-radius: 18px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 24px 64px rgba(0,0,0,.6), 0 4px 16px rgba(0,0,0,.4);
   padding: 20px 22px;
-  max-width: 340px; min-width: 260px;
-  color: #E0E0F0;
+  color: #E8E8F8 !important;
+  font-family: 'Nunito', 'Inter', sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
   animation: popIn .15s ease;
 }
 @keyframes popIn {
   from { opacity: 0; transform: translateY(6px) scale(.97); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-.dict-word {
-  font-size: 24px; font-weight: 700;
-  font-family: var(--font-hand); color: #fff;
-  margin-bottom: 2px; display: flex; align-items: center; gap: 8px;
+.dict-popup .dict-word {
+  font-size: 24px !important; font-weight: 700 !important;
+  font-family: 'Caveat', cursive !important; color: #FFFFFF !important;
+  margin-bottom: 4px; display: flex; align-items: center; gap: 8px;
 }
-.dict-phonetic { font-size: 13px; color: var(--accent); margin-bottom: 12px; }
-.dict-pos {
-  font-size: 10px; font-weight: 700; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--accent); margin-bottom: 4px;
+.dict-popup .dict-phonetic { font-size: 13px !important; color: #F5A623 !important; margin-bottom: 12px; }
+.dict-popup .dict-pos {
+  font-size: 10px !important; font-weight: 700 !important; letter-spacing: .08em;
+  text-transform: uppercase; color: #F5A623 !important; margin-bottom: 4px;
 }
-.dict-definition { font-size: 13px; color: #C0C0D8; line-height: 1.55; margin-bottom: 8px; }
-.dict-example {
-  font-size: 12px; color: #4A4A6A; font-style: italic; line-height: 1.5;
+.dict-popup .dict-definition { font-size: 13px !important; color: #C8C8E8 !important; line-height: 1.55; margin-bottom: 8px; }
+.dict-popup .dict-example {
+  font-size: 12px !important; color: #6868A0 !important; font-style: italic; line-height: 1.5;
   border-left: 2px solid #2D2D50; padding-left: 8px; margin-bottom: 10px;
 }
-.dict-close {
+.dict-popup .dict-close {
   position: absolute; top: 12px; right: 14px;
-  color: #4A4A6A; font-size: 18px;
+  color: #6060A0 !important; font-size: 20px !important;
+  background: none !important; border: none !important; cursor: pointer; padding: 0;
 }
-.dict-close:hover { color: var(--accent); }
-.dict-loading { font-size: 13px; color: #4A4A6A; padding: 4px 0; }
-.dict-error   { font-size: 13px; color: #F87171; line-height: 1.5; }
-.dict-audio {
-  font-size: 13px; color: var(--accent); cursor: pointer;
-  display: inline-flex; align-items: center; gap: 4px;
-  background: rgba(245,166,35,.1); border-radius: 6px;
-  padding: 2px 8px;
+.dict-popup .dict-close:hover { color: #F5A623 !important; }
+.dict-popup .dict-loading { font-size: 13px !important; color: #8080B0 !important; padding: 4px 0; }
+.dict-popup .dict-error   { font-size: 13px !important; color: #F87171 !important; line-height: 1.5; }
+.dict-popup .dict-audio {
+  font-size: 12px !important; color: #F5A623 !important; cursor: pointer;
+  display: inline-flex !important; align-items: center; gap: 4px;
+  background: rgba(245,166,35,.15) !important; border-radius: 6px;
+  padding: 2px 8px; border: none !important;
 }
-.dict-audio:hover { background: rgba(245,166,35,.2); }
+.dict-popup .dict-audio:hover { background: rgba(245,166,35,.28) !important; }
 
 /* ================================================================
    KEYBOARD SHORTCUTS OVERLAY
