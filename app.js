@@ -3,7 +3,7 @@
  * Thin orchestrator. Logic lives in src/ modules.
  */
 
-import { openDB, getAllBooks, putBook }          from './src/db.js';
+import { openDB, getAllBooks, putBook, deleteBook } from './src/db.js';
 import { extractPdf, paragraphsFromText }        from './src/extractor.js';
 import { openBook, initReader }                  from './src/reader.js';
 import {
@@ -36,7 +36,12 @@ function render() {
   );
 
   ({
-    library:     () => renderLibrary({ books, query, onOpen: handleOpenBook, onAddBooks: openFilePicker }),
+    library:     () => renderLibrary({
+      books, query,
+      onOpen:    handleOpenBook,
+      onAddBooks: openFilePicker,
+      onDelete:  handleDeleteBook,
+    }),
     collections: () => renderCollections({ books }),
     bookmarks:   () => renderBookmarks({ books, onOpen: handleOpenBook }),
     highlights:  () => renderHighlights({ books, onOpen: handleOpenBook }),
@@ -93,6 +98,22 @@ async function handleFiles(list) {
   books  = await getAllBooks();
   screen = 'library';
   render();
+}
+
+// ---------------------------------------------------------------------------
+// Delete book
+// ---------------------------------------------------------------------------
+async function handleDeleteBook(id) {
+  try {
+    await deleteBook(id);
+    books  = await getAllBooks();
+    screen = 'library';
+    render();
+    showToast('Book deleted.', 'info');
+  } catch (err) {
+    console.error('Delete failed', err);
+    showToast('Could not delete book.', 'error');
+  }
 }
 
 // ---------------------------------------------------------------------------

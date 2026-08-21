@@ -321,6 +321,19 @@ a { color: inherit; text-decoration: none; }
 }
 .book-cover span { position: relative; z-index: 1; }
 
+/* Delete button on book cover */
+.book-delete-btn {
+  position: absolute; top: 8px; right: 8px; z-index: 2;
+  width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(0,0,0,.45); border: none;
+  color: #fff; font-size: 13px;
+  display: grid; place-items: center;
+  opacity: 0; transition: opacity .15s, background .15s;
+  cursor: pointer;
+}
+.book-card:hover .book-delete-btn { opacity: 1; }
+.book-delete-btn:hover { background: rgba(220,38,38,.75) !important; opacity: 1 !important; }
+
 /* Warm, varied cover palette */
 .book-card:nth-child(5n+1) .book-cover { background: linear-gradient(145deg,#F5A623,#D4891A); color: #1A1A2E; }
 .book-card:nth-child(5n+2) .book-cover { background: linear-gradient(145deg,#1A1A2E,#2D2D4E); }
@@ -389,6 +402,37 @@ a { color: inherit; text-decoration: none; }
 }
 .highlight-note { margin-top: 6px; font-size: 13px; color: var(--muted); font-style: italic; }
 .highlight-color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+/* ================================================================
+   DELETE CONFIRMATION MODAL
+   ================================================================ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 800;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeIn .15s ease;
+}
+.modal-box {
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 22px;
+  padding: 36px 36px 28px;
+  max-width: 400px; width: calc(100vw - 40px);
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  animation: popUp .18s ease;
+}
+@keyframes popUp {
+  from { opacity: 0; transform: scale(.94) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-icon  { font-size: 40px; margin-bottom: 12px; }
+.modal-title { font-size: 20px; font-weight: 800; color: var(--ink); margin-bottom: 10px; }
+.modal-body  { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+.modal-body strong { color: var(--ink); }
+.modal-actions { display: flex; gap: 10px; justify-content: center; }
+.modal-actions .btn { min-width: 110px; justify-content: center; }
 
 /* ================================================================
    BACKUP SECTION
@@ -589,17 +633,35 @@ mark.reader-highlight:not([data-color])    { background: #FEF08A; }
 .contents-empty { padding: 20px 6px; color: #4A4A6A; line-height: 1.6; font-size: 13px; }
 
 /* ================================================================
-   SELECTION / HIGHLIGHT MENU
+   SELECTION / HIGHLIGHT MENU  — vertical list
    ================================================================ */
 .selection-menu {
   position: fixed; z-index: 300;
   background: #1A1A2E;
-  border: 1.5px solid #2D2D50;
-  border-radius: 16px;
-  box-shadow: var(--shadow-lg);
-  padding: 10px;
-  display: flex; flex-direction: column; gap: 5px;
+  border: 1.5px solid #3D3D60;
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.55), 0 4px 12px rgba(0,0,0,.3);
+  padding: 8px 6px;
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 190px;
 }
+.sel-swatches {
+  display: flex; gap: 6px; align-items: center;
+  padding: 6px 10px 4px;
+}
+.sel-divider { height: 1px; background: #2D2D50; margin: 4px 0; }
+.sel-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px 12px;
+  border-radius: 9px; background: transparent;
+  color: #E0E0F0; font-size: 13px; font-weight: 600;
+  text-align: left; cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.sel-item:hover { background: rgba(245,166,35,.12); color: #F5A623; }
+.sel-icon { font-size: 15px; flex: none; width: 20px; text-align: center; }
+.sel-item em { font-style: normal; opacity: .75; font-weight: 400; }
+/* Keep old classes for any references */
 .selection-menu-row { display: flex; gap: 5px; align-items: center; padding: 0 2px; }
 .selection-action {
   color: #E0E0F0; border-radius: 10px;
@@ -607,14 +669,14 @@ mark.reader-highlight:not([data-color])    { background: #FEF08A; }
   transition: background .12s, color .12s; white-space: nowrap;
   display: flex; align-items: center; gap: 6px;
 }
-.selection-action:hover { background: rgba(245,166,35,.12); color: var(--accent); }
+.selection-action:hover { background: rgba(245,166,35,.12); color: #F5A623; }
 .selection-divider { height: 1px; background: #2D2D50; margin: 2px 0; }
 
 /* Colour swatches */
 .color-swatch {
-  width: 26px; height: 26px; border-radius: 50%;
+  width: 22px; height: 22px; border-radius: 50%;
   border: 2.5px solid transparent; cursor: pointer;
-  transition: transform .12s, border-color .12s;
+  transition: transform .12s, border-color .12s; flex: none;
 }
 .color-swatch:hover  { transform: scale(1.2); }
 .color-swatch.active { border-color: #fff; box-shadow: 0 0 0 1px #1A1A2E; }

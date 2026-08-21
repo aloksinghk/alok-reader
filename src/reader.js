@@ -527,43 +527,44 @@ function openSelectionMenu() {
   if (!picked || !menu) return;
   activeSelection = picked;
 
-  // Build colour swatches row
-  const swatches = HIGHLIGHT_COLORS.map(c => `
-    <button class="color-swatch swatch-${c.id} ${c.id === selectedColor ? 'active' : ''}"
-      data-color="${c.id}" title="${c.label}" aria-label="Highlight ${c.label}"></button>
-  `).join('');
-
-  // Dictionary button only for single words
   const word       = picked.text.trim();
   const singleWord = isSingleWord(word);
-  const dictBtn    = singleWord
-    ? `<button class="selection-action" id="selectionDict" role="menuitem">📖 Define</button>`
-    : '';
 
-  // Rebuild menu HTML
+  // Colour swatches row (horizontal, stays compact)
+  const swatches = HIGHLIGHT_COLORS.map(c =>
+    `<button class="color-swatch swatch-${c.id} ${c.id === selectedColor ? 'active' : ''}"
+      data-color="${c.id}" title="${c.label}" aria-label="${c.label}"></button>`
+  ).join('');
+
+  // Vertical action list
   menu.innerHTML = `
-    <div class="selection-menu-row" style="padding:4px 6px 2px">
-      ${swatches}
-    </div>
-    <div class="selection-divider"></div>
-    <div class="selection-menu-row">
-      <button class="selection-action" id="selectionHighlight" role="menuitem">🖊 Highlight</button>
-      <button class="selection-action" id="selectionNote"      role="menuitem">📝 Note</button>
-      ${dictBtn}
-    </div>`;
+    <div class="sel-swatches">${swatches}</div>
+    <div class="sel-divider"></div>
+    <button class="sel-item" id="selectionHighlight">
+      <span class="sel-icon">🖊</span><span>Highlight</span>
+    </button>
+    <button class="sel-item" id="selectionNote">
+      <span class="sel-icon">📝</span><span>Add Note</span>
+    </button>
+    ${singleWord ? `
+    <div class="sel-divider"></div>
+    <button class="sel-item" id="selectionDict">
+      <span class="sel-icon">📖</span><span>Define "<em>${escapeHtml(word.length > 18 ? word.slice(0,18)+'…' : word)}</em>"</span>
+    </button>` : ''}`;
 
-  // Position above the selection
-  const rect = picked.range.getBoundingClientRect();
-  const menuW = 230;
-  let left = rect.left + rect.width / 2 - menuW / 2;
-  left = Math.max(8, Math.min(window.innerWidth - menuW - 8, left));
-  const top = Math.max(64, rect.top - 96);
+  // Position to the right of / above the selection
+  const rect  = picked.range.getBoundingClientRect();
+  const menuW = 200;
+  let left = rect.right + 10;
+  if (left + menuW > window.innerWidth - 8) left = rect.left - menuW - 10;
+  left = Math.max(8, left);
+  const top = Math.max(64, Math.min(rect.top, window.innerHeight - 220));
   menu.style.left  = left + 'px';
   menu.style.top   = top  + 'px';
   menu.style.width = menuW + 'px';
   menu.classList.remove('hidden');
 
-  // ── Swatch listeners ──
+  // ── Swatches ──
   menu.querySelectorAll('.color-swatch').forEach(btn => {
     btn.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
     btn.addEventListener('click', e => {
@@ -575,29 +576,27 @@ function openSelectionMenu() {
     });
   });
 
-  // ── Highlight button ──
-  const hlBtn = menu.querySelector('#selectionHighlight');
-  hlBtn?.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
-  hlBtn?.addEventListener('click',     e => { e.stopPropagation(); createHighlightFromSelection(); });
+  // ── Highlight ──
+  menu.querySelector('#selectionHighlight')?.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
+  menu.querySelector('#selectionHighlight')?.addEventListener('click',     e => { e.stopPropagation(); createHighlightFromSelection(); });
 
-  // ── Note button ──
-  const noteBtn = menu.querySelector('#selectionNote');
-  noteBtn?.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
-  noteBtn?.addEventListener('click',     e => { e.stopPropagation(); createNoteFromSelection(); });
+  // ── Note ──
+  menu.querySelector('#selectionNote')?.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
+  menu.querySelector('#selectionNote')?.addEventListener('click',     e => { e.stopPropagation(); createNoteFromSelection(); });
 
-  // ── Dictionary button ──
+  // ── Dictionary — use CLICK only, called after all mousedown handlers finish ──
   if (singleWord) {
-    const dictEl = menu.querySelector('#selectionDict');
-    dictEl?.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
-    dictEl?.addEventListener('click', e => {
+    menu.querySelector('#selectionDict')?.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
+    menu.querySelector('#selectionDict')?.addEventListener('click', e => {
       e.stopPropagation();
-      const capturedWord = word;
-      const capturedRect = picked.range.getBoundingClientRect();
+      e.preventDefault();
+      const w = word;
+      const r = picked.range.getBoundingClientRect();
       closeSelectionMenu();
       clearActiveSelection();
-      // Use setTimeout to escape the current event cycle entirely —
-      // ensures no mousedown handlers fire AFTER showDictionary opens the popup
-      setTimeout(() => showDictionary(capturedWord, capturedRect), 0);
+      // showDictionary is called inside a click handler — safest possible
+      // timing, all mousedown side effects have already completed
+      showDictionary(w, r);
     });
   }
 }
@@ -769,30 +768,22 @@ export function initReader(opts = {}) {
   // We only clear it when clicking genuinely outside both the menu and
   // the reading text (i.e. elsewhere on the page).
   document.addEventListener('mousedown', e => {
-    const menu    = $('#selectionMenu');
-    const dictEl  = document.querySelector('.dict-popup');
+    const menu = $('#selectionMenu');
 
-    // Click inside the dictionary popup — leave it open, do nothing
-    if (dictEl && dictEl.contains(e.target)) return;
-
-    // Click on the Define button itself — let the click event open the dictionary
-    if (e.target?.id === 'selectionDict' || e.target?.closest?.('#selectionDict')) return;
-
-    // Click inside the selection menu — let button click handlers run
+    // Inside selection menu — let click handlers run
     if (menu && !menu.classList.contains('hidden') && menu.contains(e.target)) return;
 
-    // Click inside reading text — new selection may be starting;
-    // close the menu but keep activeSelection until mouseup re-evaluates
+    // Inside reading area — new selection starting, just close old menu
     const readingText = $('#readingText');
     if (readingText && readingText.contains(e.target)) {
       closeSelectionMenu();
       return;
     }
 
-    // Clicked genuinely outside everything — close all
+    // Genuinely outside — close menu and clear selection state
     closeSelectionMenu();
     clearActiveSelection();
-    closeDictionary();
+    // Note: dictionary popup closes itself via its own document click listener
   });
 
   const reader = $('#readingText');

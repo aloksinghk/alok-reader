@@ -19,7 +19,7 @@ import { escapeHtml, titleOf, $ } from './utils.js';
  * @param {Function} opts.onOpen       (bookId) => void
  * @param {Function} opts.onAddBooks   () => void
  */
-export function renderLibrary({ books, query, onOpen, onAddBooks }) {
+export function renderLibrary({ books, query, onOpen, onAddBooks, onDelete }) {
   const filtered = books.filter(b =>
     !query
     || titleOf(b).toLowerCase().includes(query.toLowerCase())
@@ -43,7 +43,7 @@ export function renderLibrary({ books, query, onOpen, onAddBooks }) {
     ${active ? `
     <div class="section-head"><h2>Continue Reading</h2></div>
     <div class="continue-card" data-open="${active.id}">
-      <div class="cover">${escapeHtml(titleOf(active))}</div>
+      <div class="cover"><span>${escapeHtml(titleOf(active))}</span></div>
       <div class="continue-info">
         <h3>${escapeHtml(titleOf(active))}</h3>
         <div class="muted">${escapeHtml(active.author || 'Personal book')}</div>
@@ -69,7 +69,9 @@ export function renderLibrary({ books, query, onOpen, onAddBooks }) {
       ? `<div class="book-grid">
           ${filtered.map(b => `
             <article class="book-card" data-open="${b.id}">
-              <div class="book-cover">${escapeHtml(titleOf(b))}</div>
+              <div class="book-cover"><span>${escapeHtml(titleOf(b))}</span>
+                <button class="book-delete-btn" data-delete="${b.id}" title="Delete book" aria-label="Delete ${escapeHtml(titleOf(b))}">🗑</button>
+              </div>
               <div class="book-title">${escapeHtml(titleOf(b))}</div>
               <div class="book-meta">
                 <span>${escapeHtml(b.author || 'Personal book')}</span>
@@ -89,9 +91,71 @@ export function renderLibrary({ books, query, onOpen, onAddBooks }) {
 
   $('#add')?.addEventListener('click', onAddBooks);
   $('#emptyAdd')?.addEventListener('click', onAddBooks);
-  document.querySelectorAll('[data-open]').forEach(el =>
-    el.addEventListener('click', () => onOpen(el.dataset.open))
+
+  // Open book — but not if the delete button was clicked
+  document.querySelectorAll('.book-card[data-open]').forEach(el =>
+    el.addEventListener('click', e => {
+      if (e.target.closest('.book-delete-btn')) return;
+      onOpen(el.dataset.open);
+    })
   );
+
+  // Continue card
+  document.querySelector('.continue-card[data-open]')?.addEventListener('click', e => {
+    if (e.target.closest('.book-delete-btn')) return;
+    const id = document.querySelector('.continue-card[data-open]').dataset.open;
+    onOpen(id);
+  });
+
+  // Delete buttons
+  document.querySelectorAll('.book-delete-btn[data-delete]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const book = books.find(b => b.id === btn.dataset.delete);
+      if (!book) return;
+      showDeleteConfirm(book, onDelete);
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Delete confirmation modal
+// ---------------------------------------------------------------------------
+
+function showDeleteConfirm(book, onDelete) {
+  // Remove any existing modal
+  document.getElementById('deleteModal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'deleteModal';
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-icon">🗑</div>
+      <h3 class="modal-title">Delete this book?</h3>
+      <p class="modal-body">
+        "<strong>${escapeHtml(titleOf(book))}</strong>" will be permanently removed
+        from your library, including all highlights and bookmarks.
+        This cannot be undone.
+      </p>
+      <div class="modal-actions">
+        <button class="btn" id="modalCancel">Cancel</button>
+        <button class="btn danger" id="modalConfirm">Yes, delete</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+
+  modal.querySelector('#modalCancel').addEventListener('click', () => modal.remove());
+  modal.querySelector('#modalConfirm').addEventListener('click', () => {
+    modal.remove();
+    onDelete(book.id);
+  });
+  // Close on backdrop click
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  // Close on Escape
+  const esc = e => { if (e.key === 'Escape') { modal.remove(); document.removeEventListener('keydown', esc); } };
+  document.addEventListener('keydown', esc);
 }
 
 // ---------------------------------------------------------------------------
