@@ -767,22 +767,24 @@ export function initReader(opts = {}) {
   // We only clear it when clicking genuinely outside both the menu and
   // the reading text (i.e. elsewhere on the page).
   document.addEventListener('mousedown', e => {
-    const menu = $('#selectionMenu');
-    if (menu && !menu.classList.contains('hidden') && menu.contains(e.target)) {
-      // Click is inside the menu — let the button's click handler run
-      return;
-    }
-    // Clicking inside the reading area may start a new selection — don't
-    // close the menu yet; wait for mouseup to re-evaluate.
+    const menu    = $('#selectionMenu');
+    const dictEl  = document.querySelector('.dict-popup');
+
+    // Click inside the dictionary popup — leave it open
+    if (dictEl && dictEl.contains(e.target)) return;
+
+    // Click inside the selection menu — let button click handlers run
+    if (menu && !menu.classList.contains('hidden') && menu.contains(e.target)) return;
+
+    // Click inside reading text — new selection may be starting;
+    // close the menu but keep activeSelection until mouseup re-evaluates
     const readingText = $('#readingText');
     if (readingText && readingText.contains(e.target)) {
-      // Close the current menu (a new selection may be starting)
       closeSelectionMenu();
-      // Keep activeSelection a bit longer in case the user just
-      // clicked without moving — mouseup will clear if no new selection.
       return;
     }
-    // Clicked outside everything — close menu and clear state
+
+    // Clicked genuinely outside everything — close all
     closeSelectionMenu();
     clearActiveSelection();
     closeDictionary();

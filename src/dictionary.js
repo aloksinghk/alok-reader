@@ -230,11 +230,14 @@ export async function showDictionary(word, anchorRect) {
   positionPopup(popup, anchorRect);
   popup.querySelector('#dictClose').onclick = closeDictionary;
 
-  // Outside-click handler
-  outsideHandler = e => {
-    if (currentPopup && !currentPopup.contains(e.target)) closeDictionary();
-  };
-  document.addEventListener('mousedown', outsideHandler, true);
+  // Outside-click handler — use setTimeout so the current mousedown/click
+  // event cycle that opened the popup doesn't immediately close it again
+  setTimeout(() => {
+    outsideHandler = e => {
+      if (currentPopup && !currentPopup.contains(e.target)) closeDictionary();
+    };
+    document.addEventListener('mousedown', outsideHandler, true);
+  }, 0);
 
   // Escape handler
   keyHandler = e => { if (e.key === 'Escape') closeDictionary(); };
