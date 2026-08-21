@@ -595,7 +595,9 @@ function openSelectionMenu() {
       const capturedRect = picked.range.getBoundingClientRect();
       closeSelectionMenu();
       clearActiveSelection();
-      showDictionary(capturedWord, capturedRect);
+      // Use setTimeout to escape the current event cycle entirely —
+      // ensures no mousedown handlers fire AFTER showDictionary opens the popup
+      setTimeout(() => showDictionary(capturedWord, capturedRect), 0);
     });
   }
 }
@@ -770,8 +772,11 @@ export function initReader(opts = {}) {
     const menu    = $('#selectionMenu');
     const dictEl  = document.querySelector('.dict-popup');
 
-    // Click inside the dictionary popup — leave it open
+    // Click inside the dictionary popup — leave it open, do nothing
     if (dictEl && dictEl.contains(e.target)) return;
+
+    // Click on the Define button itself — let the click event open the dictionary
+    if (e.target?.id === 'selectionDict' || e.target?.closest?.('#selectionDict')) return;
 
     // Click inside the selection menu — let button click handlers run
     if (menu && !menu.classList.contains('hidden') && menu.contains(e.target)) return;
