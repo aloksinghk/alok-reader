@@ -30,13 +30,13 @@ export function renderLibrary({ books, query, onOpen, onAddBooks }) {
 
   $('#content').innerHTML = `
     <div class="hero">
-      <div>
+      <div class="hero-text">
         <h1>Good reading starts here.</h1>
         <p>Your personal books, redesigned for comfortable reading.</p>
       </div>
-      <div>
-        <div class="stat">${books.length}</div>
-        <div style="color:#d1d5db">books</div>
+      <div class="hero-stats">
+        <div class="stat-num">${books.length}</div>
+        <div class="stat-label">books</div>
       </div>
     </div>
 
