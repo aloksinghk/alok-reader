@@ -69,9 +69,12 @@ function createMeasureEl(book) {
 }
 
 function fontFamily(book) {
-  if (book.font === 'sans')  return 'Inter,Arial,sans-serif';
-  if (book.font === 'book')  return '"Palatino Linotype",Palatino,Georgia,serif';
-  return 'Georgia,"Times New Roman",serif';
+  if (book.font === 'sans')  return "'Nunito','Inter',Arial,sans-serif";
+  if (book.font === 'book')  return "'Literata','Palatino Linotype',Palatino,serif";
+  if (book.font === 'warm')  return "'Merriweather',Georgia,serif";
+  if (book.font === 'mono')  return "'JetBrains Mono','Courier New',monospace";
+  if (book.font === 'hand')  return "'Caveat',cursive";
+  return "'Playfair Display',Georgia,serif";
 }
 
 function fits(measure, html) {

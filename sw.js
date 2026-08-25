@@ -2,7 +2,7 @@
  * sw.js — Service Worker for Alok Reader
  * Cache version bumped for kiro-improvements (v3.0.0)
  */
-const CACHE = 'alok-reader-v3-1-0';
+const CACHE = 'alok-reader-v3-3-0';
 
 const PRECACHE_URLS = [
   './',
@@ -19,6 +19,7 @@ const PRECACHE_URLS = [
   './src/reader.js',
   './src/backup.js',
   './src/dictionary.js',
+  './src/covers.js',
 ];
 
 self.addEventListener('install', e =>

@@ -80,18 +80,35 @@ Press **`?`** while reading to see all shortcuts.
 
 ---
 
+## Library Appearance & Themes
+
+Click the **Theme** button in the topbar (or navigate to **Settings & Backup**) to change your library's visual style:
+
+| Theme | Style Inspiration | Description |
+|---|---|---|
+| **Antique Binding** *(Default)* | Classic Old Bound Books | Deep Moroccan leather sidebar, gold foil borders & warm aged parchment paper |
+| **Warm Cream** | Headway / Modern Warm | Clean daytime reading with soft cream and bold amber accents |
+| **Midnight Library** | Dark Academia | Deep navy obsidian with warm gold foil highlights |
+| **Forest Study** | Botanical Club | Dark pine oak with sage parchment and emerald accents |
+| **Nordic Slate** | Scandinavian Modern | Arctic slate blue with ice frost highlights |
+| **Obsidian OLED** | Monochromatic Black | Pure OLED black with high contrast silver trim |
+
+---
+
 ## Reading Settings
 
 Click **Aa** in the top bar or bottom bar to open reading settings.
 
 ### Font
 
-| Option | Font used |
-|--------|-----------|
-| Serif | Playfair Display — elegant, book-like |
-| Sans | Nunito — clean, modern |
-| Book | Palatino — classic long-read feel |
-| ✍ Hand | Caveat — relaxed handwriting style |
+| Option | Font used | Best for |
+|--------|-----------|----------|
+| Serif | Playfair Display / Georgia | Elegant, classic editorial look |
+| Book | Literata / Palatino | Screen-crafted literary reading (Kindle/Google Books) |
+| Warm | Merriweather / Georgia | High legibility, warm serif comfort |
+| Sans | Nunito / Inter | Clean, accessible modern sans |
+| Mono | JetBrains Mono / Courier | Focus typewriter / technical reading |
+| ✍ Hand | Caveat | Relaxed notebook / handwriting style |
 
 ### Text size
 
@@ -102,10 +119,14 @@ Use **A−** and **A+** to decrease or increase the font size (14px – 30px).
 | Theme | Best for |
 |-------|----------|
 | Light | Bright rooms, daytime reading |
-| Sepia | Warm, paper-like feel |
+| Paper | Warm Kindle/Apple Books paper feel |
+| Sepia | Classic vintage amber parchment |
+| Solarized | Soft ivory contrast, low eye fatigue |
+| Nord | Arctic slate blue evening reading |
 | Dark | Low-light environments |
-| Black | OLED screens, maximum darkness |
-| Forest | Green-tinted night mode |
+| Rosé | Rosé Pine pastel dusk theme |
+| Forest | Green-tinted calming night mode |
+| Black | OLED screens, maximum darkness & battery saving |
 
 ### Line spacing
 

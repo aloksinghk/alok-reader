@@ -9,6 +9,34 @@
 import { escapeHtml, titleOf, $ } from './utils.js';
 
 // ---------------------------------------------------------------------------
+// Cover rendering helper
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the inner HTML for a book cover element.
+ * If the book has a fetched coverImage, shows the real photo.
+ * Otherwise renders an antique default cover with Title + Author.
+ * @param {Object} book
+ * @returns {string}
+ */
+function bookCoverHtml(book) {
+  const title  = escapeHtml(titleOf(book));
+  const author = escapeHtml(book.author || '');
+
+  if (book.coverImage) {
+    return `<img src="${book.coverImage}" alt="${title}" loading="lazy">`;
+  }
+
+  // Default antique illuminated front page theme
+  return `
+    <div class="cover-ornament">✦ ✦ ✦</div>
+    <div class="cover-title">${title}</div>
+    <div class="cover-divider"></div>
+    ${author ? `<div class="cover-author">${author}</div>` : ''}
+  `;
+}
+
+// ---------------------------------------------------------------------------
 // Library screen
 // ---------------------------------------------------------------------------
 
@@ -43,7 +71,7 @@ export function renderLibrary({ books, query, onOpen, onAddBooks, onDelete }) {
     ${active ? `
     <div class="section-head"><h2>Continue Reading</h2></div>
     <div class="continue-card" data-open="${active.id}">
-      <div class="cover"><span>${escapeHtml(titleOf(active))}</span></div>
+      <div class="cover${active.coverImage ? ' has-image' : ''}"><span>${escapeHtml(titleOf(active))}</span>${active.coverImage ? `<img src="${active.coverImage}" alt="${escapeHtml(titleOf(active))}" loading="lazy">` : ''}</div>
       <div class="continue-info">
         <h3>${escapeHtml(titleOf(active))}</h3>
         <div class="muted">${escapeHtml(active.author || 'Personal book')}</div>
@@ -69,7 +97,8 @@ export function renderLibrary({ books, query, onOpen, onAddBooks, onDelete }) {
       ? `<div class="book-grid">
           ${filtered.map(b => `
             <article class="book-card" data-open="${b.id}">
-              <div class="book-cover"><span>${escapeHtml(titleOf(b))}</span>
+              <div class="book-cover ${b.coverImage ? 'has-image' : 'default-cover'}">
+                ${bookCoverHtml(b)}
                 <button class="book-delete-btn" data-delete="${b.id}" title="Delete book" aria-label="Delete ${escapeHtml(titleOf(b))}">🗑</button>
               </div>
               <div class="book-title">${escapeHtml(titleOf(b))}</div>
@@ -261,6 +290,43 @@ export function renderUpload({ onAddBooks, onExportBackup, onImportBackup, onExp
       <h2>Drop a PDF to start reading</h2>
       <p>Alok Reader extracts text from text-based PDFs and turns it into a clean, reflowable reading experience. The original PDF is kept as fallback.</p>
       <button id="choose" class="btn primary">Choose PDF files</button>
+    </div>
+
+    <div class="backup-section">
+      <h3>🎨 Library Appearance &amp; Style</h3>
+      <p>Choose the visual style for your personal library interface. Your choice is saved automatically.</p>
+      <div class="cards" style="margin-top:14px">
+        <button class="app-theme-card" data-app-theme="binding">
+          <span class="theme-preview-chip binding"></span>
+          <strong>Antique Binding</strong>
+          <small>Leather, gold foil &amp; parchment</small>
+        </button>
+        <button class="app-theme-card" data-app-theme="cream">
+          <span class="theme-preview-chip cream"></span>
+          <strong>Warm Cream</strong>
+          <small>Modern daylight amber</small>
+        </button>
+        <button class="app-theme-card" data-app-theme="midnight">
+          <span class="theme-preview-chip midnight"></span>
+          <strong>Midnight Library</strong>
+          <small>Dark academia &amp; navy gold</small>
+        </button>
+        <button class="app-theme-card" data-app-theme="forest">
+          <span class="theme-preview-chip forest"></span>
+          <strong>Forest Study</strong>
+          <small>Botanical emerald &amp; dark oak</small>
+        </button>
+        <button class="app-theme-card" data-app-theme="nordic">
+          <span class="theme-preview-chip nordic"></span>
+          <strong>Nordic Slate</strong>
+          <small>Arctic slate &amp; frost blue</small>
+        </button>
+        <button class="app-theme-card" data-app-theme="obsidian">
+          <span class="theme-preview-chip obsidian"></span>
+          <strong>Obsidian OLED</strong>
+          <small>Pure black &amp; silver</small>
+        </button>
+      </div>
     </div>
 
     <div class="backup-section">

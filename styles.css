@@ -4,44 +4,159 @@
    Handwriting font support added (Caveat)
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,400&family=Caveat:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
 
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Design tokens ── */
+/* ── Design tokens & Main Page Themes ── */
 :root {
   /* Fonts */
   --font-ui:      'Nunito', 'Inter', sans-serif;
   --font-serif:   'Playfair Display', Georgia, serif;
+  --font-book:    'Literata', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-warm:    'Merriweather', Georgia, serif;
+  --font-mono:    'JetBrains Mono', 'Courier New', Courier, monospace;
   --font-hand:    'Caveat', cursive;
-
-  /* Headway palette */
-  --bg:           #FFFDF7;       /* warm cream */
-  --bg2:          #FFF8ED;       /* slightly deeper cream for cards */
-  --panel:        #FFFFFF;
-  --line:         #EDE8DC;       /* warm border */
-  --ink:          #1A1A2E;       /* deep navy-black */
-  --ink2:         #3D3D5C;
-  --muted:        #8A8AA0;
-  --accent:       #F5A623;       /* bold amber/yellow */
-  --accent-dark:  #D4891A;
-  --accent-light: #FEF3DC;       /* amber tint for hover/bg */
-  --green:        #27AE60;
-  --red:          #E74C3C;
-  --blue:         #2980B9;
-  --purple:       #8E44AD;
-
-  /* Sidebar */
-  --sidebar-bg:   #1A1A2E;
   --sidebar-w:    252px;
 
   /* Shadows */
-  --shadow-xs:    0 1px 4px rgba(26,26,46,.06);
-  --shadow-sm:    0 2px 10px rgba(26,26,46,.08);
-  --shadow-md:    0 6px 24px rgba(26,26,46,.10);
-  --shadow-lg:    0 16px 48px rgba(26,26,46,.14);
-  --shadow-card:  0 2px 12px rgba(245,166,35,.12);
+  --shadow-xs:    0 1px 4px rgba(0,0,0,.06);
+  --shadow-sm:    0 2px 10px rgba(0,0,0,.08);
+  --shadow-md:    0 6px 24px rgba(0,0,0,.12);
+  --shadow-lg:    0 16px 48px rgba(0,0,0,.22);
+}
+
+/* 📜 Theme 1: Antique Binding (Default) */
+#app, #app.theme-binding {
+  --bg:           #F5EFE0;
+  --bg2:          #ECE2CE;
+  --panel:        #FAF4E6;
+  --line:         #DDD0BA;
+  --ink:          #2A1C12;
+  --ink2:         #4B382A;
+  --muted:        #7D6B5A;
+  --accent:       #C59B27;
+  --accent-dark:  #A07B18;
+  --accent-light: #F4E8CB;
+  --sidebar-bg:   #23160E;
+  --sidebar-text: #E8DEC8;
+  --sidebar-hover:#382417;
+  --sidebar-border: #4A3222;
+  --hero-bg:      linear-gradient(135deg, #2B1910 0%, #44281A 50%, #1F120A 100%);
+  --hero-border:  1px solid #6E4A2E;
+  --hero-gold:    #D4AF37;
+  --book-shadow:  0 10px 24px rgba(43,25,16,0.25), 0 2px 6px rgba(43,25,16,0.15);
+}
+
+/* ☀️ Theme 2: Warm Cream */
+#app.theme-cream {
+  --bg:           #FFFDF7;
+  --bg2:          #FFF8ED;
+  --panel:        #FFFFFF;
+  --line:         #EDE8DC;
+  --ink:          #1A1A2E;
+  --ink2:         #3D3D5C;
+  --muted:        #8A8AA0;
+  --accent:       #F5A623;
+  --accent-dark:  #D4891A;
+  --accent-light: #FEF3DC;
+  --sidebar-bg:   #1A1A2E;
+  --sidebar-text: #D0D0E8;
+  --sidebar-hover:#2A2A44;
+  --sidebar-border: #2D2D50;
+  --hero-bg:      linear-gradient(135deg, #1A1A2E 0%, #2A2A48 100%);
+  --hero-border:  1px solid #2D2D50;
+  --hero-gold:    #F5A623;
+  --book-shadow:  0 8px 24px rgba(26,26,46,0.12);
+}
+
+/* 🌌 Theme 3: Midnight Library */
+#app.theme-midnight {
+  --bg:           #0C1017;
+  --bg2:          #141B26;
+  --panel:        #182230;
+  --line:         #222F42;
+  --ink:          #E6EDF8;
+  --ink2:         #B0C2DE;
+  --muted:        #6E829F;
+  --accent:       #E5A93C;
+  --accent-dark:  #C48D2A;
+  --accent-light: rgba(229,169,60,0.15);
+  --sidebar-bg:   #090D13;
+  --sidebar-text: #CBD5E1;
+  --sidebar-hover:#16202E;
+  --sidebar-border: #1E293B;
+  --hero-bg:      linear-gradient(135deg, #090E17 0%, #182234 100%);
+  --hero-border:  1px solid #2A3B54;
+  --hero-gold:    #F0BA53;
+  --book-shadow:  0 10px 30px rgba(0,0,0,0.45);
+}
+
+/* 🌲 Theme 4: Forest Study */
+#app.theme-forest {
+  --bg:           #101712;
+  --bg2:          #16221A;
+  --panel:        #1C2D22;
+  --line:         #293F30;
+  --ink:          #E1EFE4;
+  --ink2:         #A8CDB2;
+  --muted:        #6F9479;
+  --accent:       #66C17C;
+  --accent-dark:  #4BA862;
+  --accent-light: rgba(102,193,124,0.15);
+  --sidebar-bg:   #0B120D;
+  --sidebar-text: #D2E4D6;
+  --sidebar-hover:#16241A;
+  --sidebar-border: #1F3325;
+  --hero-bg:      linear-gradient(135deg, #0A130C 0%, #1A2E20 100%);
+  --hero-border:  1px solid #2C4B34;
+  --hero-gold:    #7DD492;
+  --book-shadow:  0 10px 30px rgba(0,0,0,0.45);
+}
+
+/* ❄️ Theme 5: Nordic Slate */
+#app.theme-nordic {
+  --bg:           #1E232E;
+  --bg2:          #252C3A;
+  --panel:        #2B3444;
+  --line:         #384459;
+  --ink:          #ECEFF4;
+  --ink2:         #D8DEE9;
+  --muted:        #8F9CB2;
+  --accent:       #88C0D0;
+  --accent-dark:  #6AA7B8;
+  --accent-light: rgba(136,192,208,0.15);
+  --sidebar-bg:   #161A22;
+  --sidebar-text: #E5E9F0;
+  --sidebar-hover:#222834;
+  --sidebar-border: #2E3646;
+  --hero-bg:      linear-gradient(135deg, #161A22 0%, #2A3445 100%);
+  --hero-border:  1px solid #3B485E;
+  --hero-gold:    #88C0D0;
+  --book-shadow:  0 10px 30px rgba(0,0,0,0.35);
+}
+
+/* 🖤 Theme 6: Obsidian OLED */
+#app.theme-obsidian {
+  --bg:           #000000;
+  --bg2:          #111111;
+  --panel:        #181818;
+  --line:         #282828;
+  --ink:          #EEEEEE;
+  --ink2:         #CCCCCC;
+  --muted:        #777777;
+  --accent:       #E2E8F0;
+  --accent-dark:  #CBD5E1;
+  --accent-light: rgba(255,255,255,0.12);
+  --sidebar-bg:   #0A0A0A;
+  --sidebar-text: #E5E5E5;
+  --sidebar-hover:#1F1F1F;
+  --sidebar-border: #262626;
+  --hero-bg:      linear-gradient(135deg, #0A0A0A 0%, #222222 100%);
+  --hero-border:  1px solid #333333;
+  --hero-gold:    #FFFFFF;
+  --book-shadow:  0 10px 30px rgba(0,0,0,0.7);
 }
 
 html, body {
@@ -82,11 +197,12 @@ a { color: inherit; text-decoration: none; }
   width: 44px; height: 44px; border-radius: 14px;
   background: var(--accent);
   display: grid; place-items: center;
-  font-size: 22px; font-weight: 900; color: var(--ink);
-  font-family: var(--font-hand);
-  box-shadow: 0 4px 12px rgba(245,166,35,.4);
-  flex: none;
+  color: var(--sidebar-bg);
+  box-shadow: 0 4px 14px rgba(197,155,39,.4);
+  flex: none; transition: transform .2s ease;
 }
+.brand-mark:hover { transform: scale(1.06) rotate(-2deg); }
+.brand-icon { width: 26px; height: 26px; }
 .brand-text strong {
   display: block; font-size: 16px; font-weight: 800;
   color: #fff; letter-spacing: -.01em;
@@ -155,21 +271,82 @@ a { color: inherit; text-decoration: none; }
 .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245,166,35,.15); }
 
 .topbar-btn {
-  width: 38px; height: 38px; border-radius: 11px;
-  display: grid; place-items: center;
+  height: 38px; border-radius: 11px;
+  display: inline-flex; align-items: center; justify-content: center;
   background: var(--panel); border: 2px solid var(--line);
-  color: var(--ink2); font-size: 16px;
+  color: var(--ink2); font-size: 14px; font-weight: 700;
+  transition: border-color .15s, color .15s, background .15s;
 }
 .topbar-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-.avatar {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: var(--accent);
-  color: var(--ink); font-weight: 800; font-size: 15px;
-  display: grid; place-items: center;
-  font-family: var(--font-hand);
-  box-shadow: 0 2px 8px rgba(245,166,35,.3);
+/* ── App Theme Dropdown ── */
+.theme-dropdown-wrap { position: relative; }
+.theme-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 0 13px; height: 38px;
+  border-radius: 12px; font-size: 13px; font-weight: 700;
+  cursor: pointer;
 }
+.theme-btn-label { font-size: 13px; }
+.app-theme-popover {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  width: 275px; z-index: 200;
+  background: var(--panel); border: 1.5px solid var(--line);
+  border-radius: 16px; box-shadow: var(--shadow-lg);
+  padding: 10px 8px; animation: popUp .15s ease;
+}
+.app-theme-header {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--muted);
+  padding: 4px 10px 8px; border-bottom: 1px solid var(--line);
+  margin-bottom: 6px;
+}
+.app-theme-list { display: flex; flex-direction: column; gap: 2px; }
+.app-theme-option {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 10px;
+  cursor: pointer; transition: background .12s;
+  text-align: left; width: 100%; border: 1.5px solid transparent; background: transparent;
+}
+.app-theme-option:hover { background: var(--accent-light); }
+.app-theme-option.active {
+  background: var(--accent-light);
+  border-color: var(--accent);
+}
+.theme-preview-chip {
+  width: 22px; height: 22px; border-radius: 6px; flex: none;
+  border: 1px solid rgba(0,0,0,0.2);
+}
+.theme-preview-chip.binding  { background: linear-gradient(135deg, #2B1910 50%, #C59B27 50%); }
+.theme-preview-chip.cream    { background: linear-gradient(135deg, #FFF8ED 50%, #F5A623 50%); }
+.theme-preview-chip.midnight { background: linear-gradient(135deg, #0C1017 50%, #E5A93C 50%); }
+.theme-preview-chip.forest   { background: linear-gradient(135deg, #101712 50%, #66C17C 50%); }
+.theme-preview-chip.nordic   { background: linear-gradient(135deg, #1E232E 50%, #88C0D0 50%); }
+.theme-preview-chip.obsidian { background: linear-gradient(135deg, #000000 50%, #EEEEEE 50%); }
+.app-theme-meta { display: flex; flex-direction: column; }
+.app-theme-meta strong { font-size: 13px; color: var(--ink); font-weight: 700; line-height: 1.2; }
+.app-theme-meta small { font-size: 11px; color: var(--muted); line-height: 1.3; }
+
+/* App theme card inside Settings & Backup */
+.app-theme-card {
+  background: var(--panel); border: 2px solid var(--line);
+  border-radius: 14px; padding: 14px;
+  display: flex; flex-direction: column; gap: 6px;
+  text-align: left; cursor: pointer; transition: all .15s;
+}
+.app-theme-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.app-theme-card.active { border-color: var(--accent); background: var(--accent-light); }
+.app-theme-card strong { font-size: 13px; color: var(--ink); font-weight: 700; line-height: 1.2; }
+.app-theme-card small  { font-size: 11px; color: var(--muted); line-height: 1.3; }
+
+.avatar {
+  width: 38px; height: 38px; border-radius: 11px;
+  background: var(--panel); border: 2px solid var(--line);
+  color: var(--ink2); font-weight: 800; font-size: 15px;
+  display: grid; place-items: center;
+  box-shadow: var(--shadow-xs); transition: border-color .15s, color .15s;
+}
+.avatar:hover { border-color: var(--accent); color: var(--accent); }
 
 .content { padding: 32px; max-width: 1400px; margin: 0 auto; }
 
@@ -307,39 +484,119 @@ a { color: inherit; text-decoration: none; }
   box-shadow: var(--shadow-card);
   border-color: var(--accent);
 }
+/* ── Book covers with antique leather binding and gold trim ── */
 .book-cover {
-  height: 200px; border-radius: 11px;
-  display: flex; align-items: flex-end; padding: 14px;
-  font-family: var(--font-hand); font-size: 15px; font-weight: 700;
+  height: 215px; border-radius: 8px;
+  display: flex; align-items: flex-end; padding: 16px 14px;
+  font-family: var(--font-serif); font-size: 14px; font-weight: 700;
   line-height: 1.3; position: relative; overflow: hidden;
-  color: #fff;
+  color: #FFF6E5;
+  box-shadow: 2px 6px 16px rgba(0,0,0,0.3), inset 3px 0 6px rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.1);
 }
 .book-cover::before {
   content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(to bottom, transparent 35%, rgba(0,0,0,.5));
+  position: absolute; left: 0; top: 0; bottom: 0; width: 13px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(255,255,255,0.12) 40%, rgba(0,0,0,0.4) 100%);
+  border-right: 1px solid rgba(212,175,55,0.35);
+  z-index: 1;
 }
-.book-cover span { position: relative; z-index: 1; }
+.book-cover::after {
+  content: '';
+  position: absolute; inset: 6px;
+  border: 1px solid rgba(212,175,55,0.4);
+  border-radius: 4px; pointer-events: none;
+  box-shadow: inset 0 0 4px rgba(212,175,55,0.15);
+}
+.book-cover span {
+  position: relative; z-index: 2;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.85);
+  font-family: var(--font-serif);
+}
 
 /* Delete button on book cover */
 .book-delete-btn {
-  position: absolute; top: 8px; right: 8px; z-index: 2;
+  position: absolute; top: 8px; right: 8px; z-index: 5;
   width: 28px; height: 28px; border-radius: 8px;
-  background: rgba(0,0,0,.45); border: none;
+  background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,0.2);
   color: #fff; font-size: 13px;
   display: grid; place-items: center;
   opacity: 0; transition: opacity .15s, background .15s;
   cursor: pointer;
 }
 .book-card:hover .book-delete-btn { opacity: 1; }
-.book-delete-btn:hover { background: rgba(220,38,38,.75) !important; opacity: 1 !important; }
+.book-delete-btn:hover { background: rgba(220,38,38,.85) !important; opacity: 1 !important; }
 
-/* Warm, varied cover palette */
-.book-card:nth-child(5n+1) .book-cover { background: linear-gradient(145deg,#F5A623,#D4891A); color: #1A1A2E; }
-.book-card:nth-child(5n+2) .book-cover { background: linear-gradient(145deg,#1A1A2E,#2D2D4E); }
-.book-card:nth-child(5n+3) .book-cover { background: linear-gradient(145deg,#27AE60,#1A7A44); }
-.book-card:nth-child(5n+4) .book-cover { background: linear-gradient(145deg,#8E44AD,#6C3483); }
-.book-card:nth-child(5n+5) .book-cover { background: linear-gradient(145deg,#2980B9,#1A5C8A); }
+/* ── When a real cover image is available ── */
+.book-cover.has-image {
+  background: none !important;
+  border-left: none !important;
+  padding: 0;
+  overflow: hidden;
+}
+.book-cover.has-image img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+  display: block; border-radius: 8px;
+}
+.book-cover.has-image::before,
+.book-cover.has-image::after { display: none; }
+.book-cover.has-image .book-delete-btn { top: 6px; right: 6px; }
+
+/* ── Default Antique Front Page Cover (no image found) ── */
+.book-cover.default-cover {
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 18px 14px;
+  text-align: center;
+}
+.book-cover.default-cover::before {
+  width: 10px; border-right: 1px solid rgba(212,175,55,0.5);
+}
+.cover-ornament {
+  font-size: 15px; color: rgba(212,175,55,0.8);
+  letter-spacing: 6px; margin-bottom: 10px;
+  position: relative; z-index: 2;
+}
+.cover-title {
+  position: relative; z-index: 2;
+  font-family: var(--font-serif); font-size: 13px; font-weight: 700;
+  line-height: 1.35; color: #F5E8C8;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+  display: -webkit-box; -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.cover-divider {
+  position: relative; z-index: 2;
+  width: 40px; height: 1px;
+  background: rgba(212,175,55,0.6);
+  margin: 10px auto 8px;
+}
+.cover-author {
+  position: relative; z-index: 2;
+  font-family: var(--font-serif); font-size: 11px;
+  color: rgba(212,175,55,0.85); font-style: italic;
+  letter-spacing: .04em;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* Leather palette for default covers */
+.book-card:nth-child(6n+1) .book-cover.default-cover { background: linear-gradient(150deg, #4A1A1A 0%, #200808 100%); border-left: 3px solid #702828; }
+.book-card:nth-child(6n+2) .book-cover.default-cover { background: linear-gradient(150deg, #3C2214 0%, #190E08 100%); border-left: 3px solid #5C3520; }
+.book-card:nth-child(6n+3) .book-cover.default-cover { background: linear-gradient(150deg, #143520 0%, #08180E 100%); border-left: 3px solid #205432; }
+.book-card:nth-child(6n+4) .book-cover.default-cover { background: linear-gradient(150deg, #182845 0%, #0B1424 100%); border-left: 3px solid #263E6A; }
+.book-card:nth-child(6n+5) .book-cover.default-cover { background: linear-gradient(150deg, #3A1428 0%, #180710 100%); border-left: 3px solid #581F3E; }
+.book-card:nth-child(6n+6) .book-cover.default-cover { background: linear-gradient(150deg, #2C261A 0%, #14120C 100%); border-left: 3px solid #483E2B; }
+
+/* Continue-reading cover when real image available */
+.cover.has-image {
+  background: none !important;
+  padding: 0; overflow: hidden;
+}
+.cover.has-image img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+.cover.has-image::before { display: none; }
+.cover.has-image span { display: none; }
 
 .book-title {
   font-weight: 700; font-size: 13px;
@@ -455,11 +712,15 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* Themes */
-.reader.light  { --reader-bg: #FAFAF5;  --reader-text: #1A1A2E; --reader-accent: #D4891A; }
-.reader.sepia  { --reader-bg: #F5EDD6;  --reader-text: #2C1F0A; --reader-accent: #A0522D; }
-.reader.dark   { --reader-bg: #1C1C2E;  --reader-text: #D8D8E8; --reader-accent: #F5A623; }
-.reader.black  { --reader-bg: #000000;  --reader-text: #CCCCCC; --reader-accent: #F5A623; }
-.reader.forest { --reader-bg: #1A2818;  --reader-text: #CEEACC; --reader-accent: #7BC97B; }
+.reader.light      { --reader-bg: #FAFAF5;  --reader-text: #1A1A2E; --reader-accent: #D4891A; }
+.reader.paper      { --reader-bg: #F8F1E3;  --reader-text: #2C2218; --reader-accent: #C47D15; }
+.reader.sepia      { --reader-bg: #F3E6C8;  --reader-text: #352514; --reader-accent: #A0522D; }
+.reader.solarized  { --reader-bg: #FDF6E3;  --reader-text: #073642; --reader-accent: #2AA198; }
+.reader.nord       { --reader-bg: #2E3440;  --reader-text: #ECEFF4; --reader-accent: #88C0D0; }
+.reader.dark       { --reader-bg: #1C1C2E;  --reader-text: #D8D8E8; --reader-accent: #F5A623; }
+.reader.rose       { --reader-bg: #191724;  --reader-text: #E0DEF4; --reader-accent: #EBBCBA; }
+.reader.forest     { --reader-bg: #182618;  --reader-text: #CEEACC; --reader-accent: #7BC97B; }
+.reader.black      { --reader-bg: #000000;  --reader-text: #CCCCCC; --reader-accent: #F5A623; }
 
 /* ── Reader top bar ── */
 .reader-top {
@@ -531,10 +792,92 @@ a { color: inherit; text-decoration: none; }
   color: var(--reader-accent); font-weight: 700; margin-bottom: 12px;
 }
 
+/* ── Book front — Cover image mode ── */
+.book-front.has-cover-image {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 100%; gap: 22px; padding: 20px;
+}
+.book-front.has-cover-image .front-cover-img {
+  max-height: 52vh;
+  max-width: min(320px, 80%);
+  object-fit: contain; border-radius: 6px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45), 0 4px 10px rgba(0,0,0,0.3);
+}
+.book-front.has-cover-image h1 {
+  font-size: 22px; text-align: center; margin: 0;
+}
+.book-front.has-cover-image .reading-author {
+  text-align: center; margin-bottom: 0;
+}
+
+/* ── Book front — Default antique illuminated title page ── */
+.book-front.default-front {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 100%; text-align: center; gap: 0;
+  padding: 40px 28px;
+  background: radial-gradient(ellipse at center, rgba(212,175,55,0.06) 0%, transparent 72%);
+}
+.front-border-ornament {
+  width: 100%; max-width: 340px;
+  border-top: 1px solid var(--reader-accent);
+  position: relative; margin-bottom: 28px;
+  opacity: 0.5;
+}
+.front-border-ornament::after {
+  content: '✦';
+  position: absolute; top: -9px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--reader-bg);
+  padding: 0 10px;
+  font-size: 12px; color: var(--reader-accent);
+}
+.front-kicker {
+  font-size: 10px; font-weight: 700; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--reader-accent);
+  opacity: 0.75; margin-bottom: 20px;
+}
+.front-title {
+  font-family: var(--font-serif); font-size: clamp(22px, 4vw, 36px);
+  font-weight: 700; line-height: 1.2;
+  color: var(--reader-text); margin-bottom: 8px;
+}
+.front-ornament-row {
+  font-size: 12px; color: var(--reader-accent);
+  letter-spacing: 10px; margin: 18px 0; opacity: 0.6;
+}
+.front-by {
+  font-size: 11px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--reader-accent);
+  opacity: 0.6; margin-bottom: 6px;
+}
+.front-author {
+  font-family: var(--font-serif); font-size: 18px;
+  font-style: italic; color: var(--reader-text);
+  opacity: 0.85;
+}
+.front-border-bottom {
+  width: 100%; max-width: 340px;
+  border-top: 1px solid var(--reader-accent);
+  margin-top: 28px; opacity: 0.5;
+  position: relative;
+}
+.front-border-bottom::before {
+  content: '✦';
+  position: absolute; top: -9px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--reader-bg);
+  padding: 0 10px;
+  font-size: 12px; color: var(--reader-accent);
+}
+
 /* ── Font family classes ── */
 .reading-text.serif  { font-family: 'Playfair Display', Georgia, serif; }
+.reading-text.book   { font-family: 'Literata', 'Palatino Linotype', Palatino, Georgia, serif; }
+.reading-text.warm   { font-family: 'Merriweather', Georgia, serif; }
 .reading-text.sans   { font-family: 'Nunito', 'Inter', Arial, sans-serif; }
-.reading-text.book   { font-family: 'Palatino Linotype', Palatino, Georgia, serif; }
+.reading-text.mono   { font-family: 'JetBrains Mono', 'Courier New', Courier, monospace; }
 .reading-text.hand   { font-family: 'Caveat', cursive; font-size-adjust: 0.58; }
 .reading-text.hand .book-page { letter-spacing: .01em; }
 .reading-text.hand .book-page p { line-height: 1.7; }
@@ -603,8 +946,50 @@ mark.reader-highlight:not([data-color])    { background: #FEF08A; }
 }
 .choice-row button:hover  { border-color: var(--accent); color: var(--accent); background: rgba(245,166,35,.08); }
 .choice-row button.active { background: var(--accent); border-color: var(--accent); color: var(--ink); font-weight: 700; }
-/* Handwriting font preview in button */
-.choice-row button[data-font="hand"] { font-family: var(--font-hand); font-size: 16px; padding: 4px 12px; }
+/* Font grid & typography preview in buttons */
+.font-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+.font-grid button {
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+  padding: 7px 6px;
+  font-size: 13px;
+}
+.choice-row button[data-font="serif"] { font-family: var(--font-serif); }
+.choice-row button[data-font="book"]  { font-family: 'Literata', 'Palatino Linotype', serif; }
+.choice-row button[data-font="warm"]  { font-family: 'Merriweather', serif; font-size: 12px; }
+.choice-row button[data-font="sans"]  { font-family: var(--font-ui); }
+.choice-row button[data-font="mono"]  { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.choice-row button[data-font="hand"]  { font-family: var(--font-hand); font-size: 16px; padding: 4px 6px; }
+
+/* Theme grid & preview dots */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+.theme-grid button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  justify-content: flex-start;
+  padding: 7px 9px;
+  width: 100%;
+  font-size: 12px;
+}
+.theme-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex: none;
+  display: inline-block;
+}
 
 /* ── TOC / Bookmarks panel ── */
 .reader-contents {

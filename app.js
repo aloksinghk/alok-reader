@@ -5,6 +5,7 @@
 
 import { openDB, getAllBooks, putBook, deleteBook } from './src/db.js';
 import { extractPdf, paragraphsFromText }        from './src/extractor.js';
+import { fetchBookCover }                         from './src/covers.js';
 import { openBook, initReader }                  from './src/reader.js';
 import {
   renderLibrary, renderCollections,
@@ -76,15 +77,35 @@ async function handleFiles(list) {
         f, f.name,
         (cur, total) => setLoadingMessage(`Extracting "${f.name}" — page ${cur} of ${total}…`)
       );
+
+      // Search for real book cover online if connected
+      setLoadingMessage(`Searching for cover for "${extracted.title}"…`);
+      let coverResult = { coverImage: null, author: extracted.author };
+      try {
+        coverResult = await fetchBookCover(extracted.title, extracted.author);
+      } catch (coverErr) {
+        console.warn('Cover fetch failed, using default theme cover', coverErr);
+      }
+
       const book = {
-        id:    uid(), name: f.name,
-        title: extracted.title, author: extracted.author,
-        size:  f.size, data: await f.arrayBuffer(),
-        text:  extracted.text, html: extracted.html,
-        outline: extracted.outline, totalPages: extracted.pages,
-        lastPage: 1, progress: 0, readerPage: 0,
-        bookmarks: [], highlights: [],
-        created: Date.now(), extractionVersion: '3.1',
+        id:         uid(),
+        name:       f.name,
+        title:      extracted.title,
+        author:     coverResult?.author || extracted.author,
+        coverImage: coverResult?.coverImage || null,
+        size:       f.size,
+        data:       await f.arrayBuffer(),
+        text:       extracted.text,
+        html:       extracted.html,
+        outline:    extracted.outline,
+        totalPages: extracted.pages,
+        lastPage:   1,
+        progress:   0,
+        readerPage: 0,
+        bookmarks:  [],
+        highlights: [],
+        created:    Date.now(),
+        extractionVersion: '3.3',
       };
       await putBook(book);
       showToast(`"${extracted.title}" added.`, 'success');
@@ -98,6 +119,27 @@ async function handleFiles(list) {
   books  = await getAllBooks();
   screen = 'library';
   render();
+}
+
+async function autoEnrichCovers() {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+  let updated = false;
+  for (const b of books) {
+    if (!b.coverImage && b.title) {
+      try {
+        const res = await fetchBookCover(b.title, b.author);
+        if (res?.coverImage) {
+          b.coverImage = res.coverImage;
+          if (res.author && !b.author) b.author = res.author;
+          await putBook(b);
+          updated = true;
+        }
+      } catch {}
+    }
+  }
+  if (updated && screen === 'library') {
+    render();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -159,9 +201,58 @@ $('#fileInput')?.addEventListener('change', e => handleFiles(e.target.files));
 document.addEventListener('files-dropped', e => handleFiles(e.detail.files));
 
 // ---------------------------------------------------------------------------
+// App theme management
+// ---------------------------------------------------------------------------
+const APP_THEMES = ['binding', 'cream', 'midnight', 'forest', 'nordic', 'obsidian'];
+
+export function getAppTheme() {
+  return localStorage.getItem('alok-app-theme') || 'binding';
+}
+
+export function setAppTheme(theme) {
+  if (!APP_THEMES.includes(theme)) theme = 'binding';
+  const app = $('#app');
+  if (app) {
+    app.className = `theme-${theme}`;
+  }
+  localStorage.setItem('alok-app-theme', theme);
+  document.querySelectorAll('[data-app-theme]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.appTheme === theme);
+  });
+}
+
+function initAppThemes() {
+  const currentTheme = getAppTheme();
+  setAppTheme(currentTheme);
+
+  $('#appThemeBtn')?.addEventListener('click', e => {
+    e.stopPropagation();
+    $('#appThemePopover')?.classList.toggle('hidden');
+  });
+
+  document.querySelectorAll('[data-app-theme]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const t = btn.dataset.appTheme;
+      setAppTheme(t);
+      $('#appThemePopover')?.classList.add('hidden');
+      const name = btn.querySelector('strong')?.textContent || t;
+      showToast(`Library style set to ${name}.`, 'info');
+    });
+  });
+
+  document.addEventListener('click', e => {
+    if (!$('#appThemeWrap')?.contains(e.target)) {
+      $('#appThemePopover')?.classList.add('hidden');
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Boot
 // ---------------------------------------------------------------------------
 initReader();
+initAppThemes();
 
 (async () => {
   try {
@@ -172,4 +263,5 @@ initReader();
     showToast('Storage error. Books may not be available.', 'error');
   }
   render();
+  autoEnrichCovers();
 })();

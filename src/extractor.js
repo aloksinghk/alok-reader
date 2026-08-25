@@ -9,6 +9,8 @@
  *    addition to the all-caps heuristic, reducing false positives.
  */
 
+import { cleanTitleAndAuthor } from './covers.js';
+
 const PDFJS_URL   = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
 const WORKER_URL  = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
 
@@ -30,17 +32,17 @@ async function getPdfJs() {
  * Extract title and author from PDF metadata, falling back to the filename.
  * @param {Object} doc   PDF.js document
  * @param {string} filename
- * @returns {{ title: string, author: string }}
+ * @returns {Promise<{ title: string, author: string }>}
  */
 async function readMetadata(doc, filename) {
   try {
     const meta = await doc.getMetadata();
     const info = meta?.info || {};
-    const title  = (info.Title  || '').trim() || filename.replace(/\.pdf$/i, '');
-    const author = (info.Author || '').trim();
-    return { title, author };
+    const rawTitle  = (info.Title  || '').trim();
+    const rawAuthor = (info.Author || '').trim();
+    return cleanTitleAndAuthor(filename, rawTitle, rawAuthor);
   } catch {
-    return { title: filename.replace(/\.pdf$/i, ''), author: '' };
+    return cleanTitleAndAuthor(filename, '', '');
   }
 }
 
@@ -272,13 +274,14 @@ export async function extractPdf(fileOrBuffer, filename = '', onProgress = null)
 
   const text = fullText.trim();
   const html = paragraphsFromText(text, dominantFontSize);
+  const refined = cleanTitleAndAuthor(filename, meta.title, meta.author, text.slice(0, 1500));
 
   return {
     text,
     html,
     pages:   doc.numPages,
-    title:   meta.title,
-    author:  meta.author,
+    title:   refined.title || meta.title,
+    author:  refined.author || meta.author,
     outline: resolvedOutline,
   };
 }

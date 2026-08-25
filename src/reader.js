@@ -53,7 +53,9 @@ export function getPageIndex()  { return readerPhysicalPage; }
 
 function fontFamily(book) {
   if (book?.font === 'sans')  return "'Nunito','Inter',Arial,sans-serif";
-  if (book?.font === 'book')  return '"Palatino Linotype",Palatino,Georgia,serif';
+  if (book?.font === 'book')  return "'Literata','Palatino Linotype',Palatino,serif";
+  if (book?.font === 'warm')  return "'Merriweather',Georgia,serif";
+  if (book?.font === 'mono')  return "'JetBrains Mono','Courier New',monospace";
   if (book?.font === 'hand')  return "'Caveat',cursive";
   return "'Playfair Display',Georgia,serif";
 }
@@ -213,13 +215,36 @@ export async function openBook(book, startPage = null, onClose = null) {
   loadBookmarks();
 
   $('#readerBookTitle').textContent = titleOf(current);
-  rawReadingHtml = `
-    <div class="book-front">
-      <div class="chapter-kicker">Reading</div>
-      <h1>${escapeHtml(titleOf(current))}</h1>
-      <div class="reading-author">${escapeHtml(current.author || 'Personal book')}</div>
-    </div>
-    ${current.html || ''}`;
+
+  // Build the first-page (book-front) HTML
+  const hasCover  = !!current.coverImage;
+  const hasAuthor = !!(current.author && current.author.trim());
+  const bookTitle  = escapeHtml(titleOf(current));
+  const bookAuthor = escapeHtml(current.author || '');
+
+  let bookFrontHtml;
+  if (hasCover) {
+    // Real cover image fetched from internet
+    bookFrontHtml = `
+      <div class="book-front has-cover-image">
+        <img src="${current.coverImage}" alt="${bookTitle}" class="front-cover-img" loading="lazy">
+        <h1>${bookTitle}</h1>
+        ${hasAuthor ? `<div class="reading-author">${bookAuthor}</div>` : ''}
+      </div>`;
+  } else {
+    // Default illuminated antique title page
+    bookFrontHtml = `
+      <div class="book-front default-front">
+        <div class="front-border-ornament"></div>
+        <div class="front-kicker">A Personal Library</div>
+        <div class="front-title">${bookTitle}</div>
+        <div class="front-ornament-row">✦ ✦ ✦</div>
+        ${hasAuthor ? `<div class="front-by">By</div><div class="front-author">${bookAuthor}</div>` : ''}
+        <div class="front-border-bottom"></div>
+      </div>`;
+  }
+
+  rawReadingHtml = bookFrontHtml + '\n' + (current.html || '');
 
   const reader = $('#reader');
   reader.className = 'reader ' + (current.theme || 'light');
